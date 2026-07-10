@@ -1,0 +1,172 @@
+---
+import { getCollection } from 'astro:content';
+import '../../styles/global.css';
+
+export async function getStaticPaths() {
+    const allPosts = await getCollection('blog');
+    const archives: string[] = [];
+    
+    // 1. Find all unique archives (Month + Year)
+    allPosts.forEach(post => {
+        let archiveLabel = "نامشخص";
+        if (post.data.jalaliDate) {
+            const parts = post.data.jalaliDate.split(" ");
+            if (parts.length >= 3) {
+                archiveLabel = `${parts[1]} ${parts[2]}`; 
+            }
+        }
+        if (!archives.includes(archiveLabel)) archives.push(archiveLabel);
+    });
+
+    // 2. Map archives to their respective posts
+    return archives.map(archive => {
+        const filteredPosts = allPosts.filter(post => {
+            let label = "نامشخص";
+            if (post.data.jalaliDate) {
+                const parts = post.data.jalaliDate.split(" ");
+                if (parts.length >= 3) label = `${parts[1]} ${parts[2]}`;
+            }
+            return label === archive;
+        }).sort((a, b) => {
+            const dateA = (a.data && a.data.date) ? new Date(a.data.date).getTime() : 0;
+            const dateB = (b.data && b.data.date) ? new Date(b.data.date).getTime() : 0;
+            return dateB - dateA;
+        });
+
+        return {
+            params: { archive },
+            props: { posts: filteredPosts }
+        };
+    });
+}
+
+// Get the archive parameter and posts from Astro's routing
+const { archive } = Astro.params;
+const { posts } = Astro.props;
+
+// --- COMMENTS LOGIC ---
+const allComments = await getCollection('comments');
+const commentCounts: Record<string, number> = {};
+
+allComments.forEach(comment => {
+    const slug = comment.data.postSlug;
+    commentCounts[slug] = (commentCounts[slug] || 0) + 1;
+});
+
+// --- HELPERS ---
+function toFa(num: number) {
+    const farsiDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return num.toString().replace(/\d/g, x => farsiDigits[parseInt(x)]);
+}
+
+function extractImage(bodyStr: string) {
+    const imgRegex = /\x3Cimg[^\x3E]+src=["'](.*?)["']|!\[.*?\]\((.*?)\)/i;
+    const match = bodyStr.match(imgRegex);
+    return match ? (match[1] || match[2]) : null;
+}
+
+function generateExcerpt(markdownBody: string) {
+    if (!markdownBody) return "<p>بدون محتوا</p>";
+    let text = markdownBody;
+    text = text.replace(/\x3Cstyle[^\x3E]*\x3E[\s\S]*?\x3C\/style\x3E/gi, ' ');
+    text = text.replace(/\x3Cxml[^\x3E]*\x3E[\s\S]*?\x3C\/xml\x3E/gi, ' ');
+    text = text.replace(/\x3Cscript[^\x3E]*\x3E[\s\S]*?\x3C\/script\x3E/gi, ' ');
+    text = text.replace(/\x3C!--[\s\S]*?--\x3E/g, ' ');
+    text = text.replace(/!\[.*?\]\(.*?\)/g, ' ');
+    text = text.replace(/\[(.*?)\]\(.*?\)/g, '$1');
+    text = text.replace(/\x3Cbr\s*\/?\x3E/gi, '\n');
+    text = text.replace(/\x3C\/p\x3E/gi, '\n');
+    text = text.replace(/\x3C\/div\x3E/gi, '\n');
+    text = text.replace(/\x3C[^\x3E]+\x3E/g, ' ');
+    text = text.replace(/&nbsp;/gi, ' ');
+    text = text.replace(/&quot;/gi, '"');
+    text = text.replace(/&amp;/gi, '&');
+    text = text.replace(/&lt;/gi, '\x3C');
+    text = text.replace(/&gt;/gi, '\x3E');
+    text = text.replace(/&#?[a-z0-9]+;/gi, ' ');
+    text = text.replace(/[#*~_>]/g, '');
+    text = text.replace(/[ \t]+/g, ' ').trim(); 
+    text = text.replace(/ *[\r\n]+ */g, '\n');  
+    text = text.replace(/\n+/g, '\n');          
+    if (text.length > 350) {
+        text = text.substring(0, 350) + '...';
+    }
+    text = text.replace(/\n/g, '<br/>');
+    return `<p>${text}</p>`;
+}
+---
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دلشرم - نوشته‌های بایگانی: {archive}</title>
+    <script is:inline>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="تغییر تم">🌙</button>
+            <h1><a href="/delsharm/" style="color: inherit; text-decoration: none;">دلشرم</a></h1>
+            <p style="color: var(--text-muted); margin-top: 10px; font-size: 1.1em;">محمدصادق رسولی</p>
+        </div>
+        
+        <div class="main-layout">
+            <div class="content-area">
+                <div class="section-title" style="margin-top: 0; margin-bottom: 30px;">
+                    بایگانی: <span style="color: #2980b9;">{archive}</span>
+                </div>
+                
+                <div class="posts-grid">
+                    {posts.map((post) => (
+                        <div class="post-card">
+                            {extractImage(post.body) && (
+                                <a href={`/delsharm/blog/${post.id}/`}>
+                                    <img src={extractImage(post.body)} class="card-img" alt="تصویر پست" />
+                                </a>
+                            )}
+                            <div class="card-content">
+                                <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
+                                
+                                <div class="meta-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    {post.data.jalaliDate && <div class="date" style="margin-bottom: 0;">{post.data.jalaliDate}</div>}
+                                    
+                                    <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+                                        💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} نظر
+                                    </div>
+                                </div>
+
+                                <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
+                                <a href={`/delsharm/blog/${post.id}/`} class="read-more">ادامه مطلب ←</a>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script is:inline>
+        const themeBtn = document.getElementById('theme-toggle');
+        function updateIcon() {
+            if (document.documentElement.classList.contains('dark-mode')) {
+                themeBtn.innerHTML = '☀️';
+            } else {
+                themeBtn.innerHTML = '🌙';
+            }
+        }
+        updateIcon();
+        themeBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-mode');
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateIcon();
+        });
+    </script>
+</body>
+</html>
