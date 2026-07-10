@@ -2,6 +2,7 @@ comments:
   allowedFields:
     - name
     - message
+    - postSlug
   branch: "main"
   commitMessage: "نظری جدید از {fields.name}"
   filename: "comment_{@timestamp}"
