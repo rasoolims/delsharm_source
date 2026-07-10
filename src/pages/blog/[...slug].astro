@@ -21,14 +21,17 @@ const filteredComments = allComments
   .filter(comment => comment.data.postSlug === post.id)
   .sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
 
-// Convert the JSON UTC timestamps into beautiful Jalali dates
+// Convert the JSON UTC timestamps into beautiful Jalali dates (Now with time!)
 function formatJalali(dateObj: Date) {
-    return new Intl.DateTimeFormat('fa-IR', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    return new Intl.DateTimeFormat('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',     // Adds the hour
+        minute: '2-digit'    // Adds the minute
     }).format(dateObj);
 }
+
 
 function toFa(num: number) {
     const farsiDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];

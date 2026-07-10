@@ -6,7 +6,7 @@ comments:
   branch: "main"
   commitMessage: "نظری جدید از {fields.name}"
   filename: "comment_{@timestamp}"
-  format: "json"
+  format: "yml"
   generatedFields:
     date:
       type: "date"
