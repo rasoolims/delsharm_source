@@ -103,3 +103,39 @@ a:hover { color: #1abc9c; }
     .desktop-banner { display: none !important; }
     .mobile-banner { display: grid !important; }
 }
+
+
+/* --- ENTIRE CARD CLICKABLE OVERLAY --- */
+
+/* 1. Prepare the card and add a nice hover lift effect */
+.post-card {
+    position: relative; /* This traps the invisible overlay inside the card */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-4px); /* Lifts the card up slightly */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1); /* Adds a soft shadow */
+}
+
+/* Dark mode adjustment for the shadow (optional, assuming you have a .dark-mode class) */
+.dark-mode .post-card:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 2. Stretch the title link over the entire card invisibly */
+.post-card h2 a::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10; /* Places the link over the text/images */
+}
+
+/* 3. Ensure the read-more button still gets its own hover effects */
+.post-card .read-more {
+    position: relative;
+    z-index: 11; /* Places the button just above the invisible overlay */
+}
