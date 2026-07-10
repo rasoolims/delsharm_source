@@ -14,19 +14,19 @@ const blogCollection = defineCollection({
   }),
 });
 
-// 2. Schema for your JSON comment files
+// 2. Schema for your JSON and YAML comment files
 const commentsCollection = defineCollection({
-  // Tells Astro to look for JSON files in the comments folder
-  loader: glob({ pattern: '**/*.json', base: './src/content/comments' }),
+  // Tells Astro to look for both JSON and YAML files in the comments folder
+  loader: glob({ pattern: '**/*.{json,yml,yaml}', base: './src/content/comments' }),
   schema: z.object({
     postSlug: z.string(),
     name: z.string(),
-    // Transforms the ISO string from the JSON into a real Date object for sorting
-    date: z.string().transform((str) => new Date(str)),
+    // z.coerce.date() safely converts both JSON strings and YAML Date objects!
+    date: z.coerce.date(),
     message: z.string(),
     // Optional response block for when you want to reply
     adminResponse: z.object({
-      date: z.string().transform((str) => new Date(str)),
+      date: z.coerce.date(),
       message: z.string()
     }).nullable().optional()
   }),
