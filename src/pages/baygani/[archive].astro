@@ -130,24 +130,24 @@ function generateExcerpt(markdownBody: string) {
                                     <img src={extractImage(post.body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
-                           <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
-                            <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
-                            
-                            <div class="meta-row" style="margin-bottom: 15px;">
-                                {post.data.jalaliDate && <div class="date" style="margin-bottom: 0;">{post.data.jalaliDate}</div>}
-                            </div>
+                            <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
+                                    <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
+                                    
+                                    <div class="meta-row" style="margin-bottom: 15px;">
+                                        {post.data.jalaliDate && <div class="date" style="margin-bottom: 0;">{post.data.jalaliDate}</div>}
+                                    </div>
 
-                            <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
-                            
-                            <!-- Notice the margin-top: auto; added here! -->
-                            <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">
-                                <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
-                                
-                                <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
-                                    💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} نظر
+                                    <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
+                                    
+                                    <!-- Notice the margin-top: auto; added here! -->
+                                    <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">
+                                        <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
+                                        
+                                        <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+                                            💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} نظر
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
                         </div>
                     ))}
                 </div>

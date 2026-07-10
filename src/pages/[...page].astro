@@ -174,7 +174,7 @@ for(let i = 1; i <= totalPages; i++) {
                                     <img src={extractImage(page.data[0].body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
-                            <div class="card-content">
+                            <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
                                 <h2><a href={`/delsharm/blog/${page.data[0].id}/`}>{page.data[0].data.title}</a></h2>
                                 
                                 <div class="meta-row" style="margin-bottom: 15px;">
@@ -183,9 +183,9 @@ for(let i = 1; i <= totalPages; i++) {
 
                                 <div class="excerpt-container" set:html={generateExcerpt(page.data[0].body)}></div>
                                 
-                                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                                    <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
-                                    
+                                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">                                   
+                                 <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
+                                                                    
                                     <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
                                         💬 {commentCounts[page.data[0].id] ? toFa(commentCounts[page.data[0].id]) : '۰'} دیدگاه
                                     </div>
@@ -226,7 +226,7 @@ for(let i = 1; i <= totalPages; i++) {
                                     <img src={extractImage(post.body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
-                            <div class="card-content">
+                            <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
                                 <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
                                 
                                 <div class="meta-row" style="margin-bottom: 15px;">
@@ -235,7 +235,7 @@ for(let i = 1; i <= totalPages; i++) {
 
                                 <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
                                 
-                                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">
                                     <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
                                     
                                     <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
