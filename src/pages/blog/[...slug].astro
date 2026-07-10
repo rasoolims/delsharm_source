@@ -29,6 +29,12 @@ function formatJalali(dateObj: Date) {
         day: 'numeric' 
     }).format(dateObj);
 }
+
+function toFa(num: number) {
+    const farsiDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return num.toString().replace(/\d/g, x => farsiDigits[parseInt(x)]);
+}
+
 ---
 
 <BlogPost {...post.data}>
@@ -36,7 +42,7 @@ function formatJalali(dateObj: Date) {
 
     <div id="comments-section" class="comments-section">
       <h3 style="color: var(--text-heading); margin-bottom: 20px; font-size: 1.3em;">
-        نظرات ({filteredComments.length})
+        <h3 style="color: var(--text-heading); margin-bottom: 20px; font-size: 1.3em;">دیدگاه‌ها ({toFa(filteredComments.length)})</h3>
       </h3>
 
       <div class="comments-list">
@@ -72,9 +78,9 @@ function formatJalali(dateObj: Date) {
         
         
         <input type="text" name="fields[name]" placeholder="نام شما" required />
-        <textarea name="fields[message]" placeholder="نظر خود را بنویسید..." rows="4" required></textarea>
+        <textarea name="fields[message]" placeholder="دیدگاه خود را بنویسید..." rows="4" required></textarea>
         
-        <button type="submit">ارسال نظر</button>
+        <button type="submit">ارسال دیدگاه</button>
       </form>
     </div>
 
@@ -125,17 +131,17 @@ function formatJalali(dateObj: Date) {
 
             if (res.ok) {
               // Replace the form with a success message!
-              form.innerHTML = '<p style="color: #27ae60; font-weight: bold; background: rgba(39, 174, 96, 0.1); padding: 15px; border-radius: 8px; text-align: center;">نظر شما با موفقیت ثبت شد و پس از تایید نمایش داده می‌شود.</p>';
+              form.innerHTML = '<p style="color: #27ae60; font-weight: bold; background: rgba(39, 174, 96, 0.1); padding: 15px; border-radius: 8px; text-align: center;">دیگاه شما با موفقیت ثبت شد و پس از تایید نمایش داده می‌شود.</p>';
             } else {
               // If Staticman throws an error, show it so we can debug
               const data = await res.json();
               alert("خطا: " + (data.errorCode || 'نامشخص'));
-              btn.innerText = 'ارسال نظر';
+              btn.innerText = 'ارسال دیگاه';
               btn.disabled = false;
             }
           } catch (err) {
             alert("خطا در ارتباط با سرور. لطفاً تنظیمات اینترنت خود را بررسی کنید.");
-            btn.innerText = 'ارسال نظر';
+            btn.innerText = 'ارسال دیگاه';
             btn.disabled = false;
           }
         });

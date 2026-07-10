@@ -177,15 +177,19 @@ for(let i = 1; i <= totalPages; i++) {
                             <div class="card-content">
                                 <h2><a href={`/delsharm/blog/${page.data[0].id}/`}>{page.data[0].data.title}</a></h2>
                                 
-                                <div class="meta-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div class="meta-row" style="margin-bottom: 15px;">
                                     {page.data[0].data.jalaliDate && <div class="date" style="margin-bottom: 0;">{page.data[0].data.jalaliDate}</div>}
-                                    <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
-                                        💬 {commentCounts[page.data[0].id] ? toFa(commentCounts[page.data[0].id]) : '۰'} نظر
-                                    </div>
                                 </div>
 
                                 <div class="excerpt-container" set:html={generateExcerpt(page.data[0].body)}></div>
-                                <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more">ادامه مطلب ←</a>
+                                
+                                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                                    <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
+                                    
+                                    <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+                                        💬 {commentCounts[page.data[0].id] ? toFa(commentCounts[page.data[0].id]) : '۰'} دیدگاه
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -225,15 +229,19 @@ for(let i = 1; i <= totalPages; i++) {
                             <div class="card-content">
                                 <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
                                 
-                                <div class="meta-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div class="meta-row" style="margin-bottom: 15px;">
                                     {post.data.jalaliDate && <div class="date" style="margin-bottom: 0;">{post.data.jalaliDate}</div>}
+                                </div>
+
+                                <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
+                                
+                                <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                                    <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
+                                    
                                     <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
                                         💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} نظر
                                     </div>
                                 </div>
-
-                                <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
-                                <a href={`/delsharm/blog/${post.id}/`} class="read-more">ادامه مطلب ←</a>
                             </div>
                         </div>
                     ))}
@@ -270,19 +278,24 @@ for(let i = 1; i <= totalPages; i++) {
                                     <img src={extractImage(post.body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
-                            <div class="card-content">
-                                <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
-                                
-                                <div class="meta-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                    {post.data.jalaliDate && <div class="date" style="margin-bottom: 0;">{post.data.jalaliDate}</div>}
-                                    <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
-                                        💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} نظر
+                            <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
+                                    <h2><a href={`/delsharm/blog/${post.id}/`}>{post.data.title}</a></h2>
+                                    
+                                    <div class="meta-row" style="margin-bottom: 15px;">
+                                        {post.data.jalaliDate && <div class="date" style="margin-bottom: 0;">{post.data.jalaliDate}</div>}
+                                    </div>
+
+                                    <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
+                                    
+                                    <!-- Notice the margin-top: auto; added here! -->
+                                    <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">
+                                        <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
+                                        
+                                        <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+                                            💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} نظر
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
-                                <a href={`/delsharm/blog/${post.id}/`} class="read-more">ادامه مطلب ←</a>
-                            </div>
                         </div>
                     ))}
                     
@@ -293,13 +306,11 @@ for(let i = 1; i <= totalPages; i++) {
                         {page.url.prev ? <a href={page.url.prev}>→ جدیدتر</a> : <span></span>}
                         
                         <div class="page-numbers">
-                            {pageNumbers.map(num => {
-                                if (num === '...') return <span>...</span>;
-                                if (num === currentPage) return <span class="current-page">{toFa(num as number)}</span>;
-                                
-                                const link = num === 1 ? '/delsharm/' : `/delsharm/${num}`;
-                                return <a href={link}>{toFa(num as number)}</a>;
-                            })}
+                            {pageNumbers.map((num) => (
+                                num === '...' ? <span>...</span> :
+                                num === currentPage ? <span class="current-page">{toFa(Number(num))}</span> :
+                                <a href={num === 1 ? '/delsharm/' : `/delsharm/${num}`}>{toFa(Number(num))}</a>
+                            ))}
                         </div>
 
                         {page.url.next ? <a href={page.url.next}>قدیمی‌تر ←</a> : <span></span>}
