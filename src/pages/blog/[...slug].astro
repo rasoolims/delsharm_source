@@ -74,7 +74,7 @@ function toFa(num: number) {
 
 {/* Public Submission Form */}
 <form action="https://delsharm-comments.onrender.com/v2/entry/rasoolims/delsharm_source/main/comments" method="POST" class="comment-form">        
-        <input type="hidden" name="options[slug]" value={post.id} />
+        <input type="hidden" name="fields[postSlug]" value={post.id} />
         
         
         <input type="text" name="fields[name]" placeholder="نام شما" required />
