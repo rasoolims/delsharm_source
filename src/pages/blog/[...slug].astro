@@ -35,6 +35,15 @@ function toFa(num: number) {
     const farsiDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
     return num.toString().replace(/\d/g, x => farsiDigits[parseInt(x)]);
 }
+
+// Smart URL formatter: adds https:// if the user forgets it!
+function getValidUrl(url: string | undefined | null) {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+    return `https://${url}`;
+}
 ---
 
 <BlogPost {...post.data}>
@@ -55,7 +64,7 @@ function toFa(num: number) {
                             <strong>
                               {/* Check if the user provided a URL */}
                               {comment.data.url ? (
-                                <a href={comment.data.url} target="_blank" rel="nofollow noopener noreferrer">
+                                <a href={getValidUrl(comment.data.url)} target="_blank" rel="nofollow noopener noreferrer">
                                   {comment.data.name}
                                 </a>
                               ) : (
@@ -83,11 +92,13 @@ function toFa(num: number) {
 
         {/* Public Submission Form */}
         <form action="https://delsharm-comments.onrender.com/v2/entry/rasoolims/delsharm_source/main/comments" method="POST" class="comment-form">        
-            <input type="hidden" name="options[slug]" value={post.id} />
+            {/* THIS IS THE CRITICAL FIX: fields[postSlug] */}
+            <input type="hidden" name="fields[postSlug]" value={post.id} />
             
             <input type="text" name="fields[name]" placeholder="نام شما" required />
             <input type="email" name="fields[email]" dir="ltr" placeholder="ایمیل (اختیاری - منتشر نمی‌شود)" />
-            <input type="url" name="fields[url]" dir="ltr" placeholder="وب‌سایت (اختیاری - مثال: https://site.com)" />
+            {/* Changed from type="url" to type="text" to allow loose entry */}
+            <input type="text" name="fields[url]" dir="ltr" placeholder="وب‌سایت (اختیاری - مثال: site.com)" />
             
             <textarea name="fields[message]" placeholder="دیدگاه خود را بنویسید..." rows="4" required></textarea>
         
