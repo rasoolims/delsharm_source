@@ -21,6 +21,8 @@ const commentsCollection = defineCollection({
   schema: z.object({
     postSlug: z.string(),
     name: z.string(),
+    email: z.string().optional(),
+    url: z.string().optional(),
     // z.coerce.date() safely converts both JSON strings and YAML Date objects!
     date: z.coerce.date(),
     message: z.string(),
