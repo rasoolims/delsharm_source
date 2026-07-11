@@ -3,11 +3,11 @@ import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
+    const posts = await getCollection('blog');
+    return posts.map((post) => ({
+        params: { slug: post.id },
+        props: post,
+    }));
 }
 type Props = CollectionEntry<'blog'>;
 
@@ -15,11 +15,10 @@ const post = Astro.props;
 const { Content } = await render(post);
 
 // --- COMMENTS LOGIC ---
-// Fetch all comments and filter them to only show the ones belonging to this specific post.id
 const allComments = await getCollection('comments');
 const filteredComments = allComments
-  .filter(comment => comment.data.postSlug === post.id)
-  .sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
+    .filter(comment => comment.data.postSlug === post.id)
+    .sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
 
 // Convert the JSON UTC timestamps into beautiful Jalali dates (Now with time!)
 function formatJalali(dateObj: Date) {
@@ -27,60 +26,57 @@ function formatJalali(dateObj: Date) {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',     // Adds the hour
-        minute: '2-digit'    // Adds the minute
+        hour: '2-digit',
+        minute: '2-digit'
     }).format(dateObj);
 }
-
 
 function toFa(num: number) {
     const farsiDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
     return num.toString().replace(/\d/g, x => farsiDigits[parseInt(x)]);
 }
-
 ---
 
 <BlogPost {...post.data}>
-	<Content />
+  <Content />
 
     <div id="comments-section" class="comments-section">
       <h3 style="color: var(--text-heading); margin-bottom: 20px; font-size: 1.3em;">
-        <h3 style="color: var(--text-heading); margin-bottom: 20px; font-size: 1.3em;">دیدگاه‌ها ({toFa(filteredComments.length)})</h3>
+        دیدگاه‌ها ({toFa(filteredComments.length)})
       </h3>
 
       <div class="comments-list">
         {filteredComments.map(comment => (
-          <div class="comment-thread">
-            
-            {/* Visitor Comment */}
-            <div class="comment-item">
-              <div class="meta">
-                <strong>{comment.data.name}</strong>
-                <span class="date">{formatJalali(comment.data.date)}</span>
-              </div>
-              <p>{comment.data.message}</p>
-            </div>
+                <div class="comment-thread">
+                    
+                    {/* Visitor Comment */}
+                    <div class="comment-item">
+                        <div class="meta">
+                            <strong>{comment.data.name}</strong>
+                            <span class="date">{formatJalali(comment.data.date)}</span>
+                        </div>
+                        <p>{comment.data.message}</p>
+                    </div>
 
-            {/* Optional Admin Response */}
-            {comment.data.adminResponse && (
-              <div class="comment-item admin-reply">
-                <div class="meta">
-                  <strong style="color: #2980b9;">محمدصادق رسولی</strong>
-                  <span class="date">{formatJalali(comment.data.adminResponse.date)}</span>
+                    {/* Optional Admin Response */}
+                    {comment.data.adminResponse && (
+                        <div class="comment-item admin-reply">
+                            <div class="meta">
+                                <strong style="color: #2980b9;">محمدصادق (نویسنده)</strong>
+                                <span class="date">{formatJalali(comment.data.adminResponse.date)}</span>
+                            </div>
+                            <p>{comment.data.adminResponse.message}</p>
+                        </div>
+                    )}
                 </div>
-                <p>{comment.data.adminResponse.message}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+            ))}
+        </div>
 
-{/* Public Submission Form */}
-<form action="https://delsharm-comments.onrender.com/v2/entry/rasoolims/delsharm_source/main/comments" method="POST" class="comment-form">        
-        <input type="hidden" name="fields[postSlug]" value={post.id} />
-        
-        
-        <input type="text" name="fields[name]" placeholder="نام شما" required />
+        {/* Public Submission Form */}
+        <form action="https://delsharm-comments.onrender.com/v2/entry/rasoolims/delsharm_source/main/comments" method="POST" class="comment-form">        
+            <input type="hidden" name="options[slug]" value={post.id} />
+            
+            <input type="text" name="fields[name]" placeholder="نام شما" required />
         <textarea name="fields[message]" placeholder="دیدگاه خود را بنویسید..." rows="4" required></textarea>
         
         <button type="submit">ارسال دیدگاه</button>
@@ -103,7 +99,8 @@ function toFa(num: number) {
       .comment-form input:focus, .comment-form textarea:focus { outline: none; border-color: #3498db; }
       
       .comment-form button { padding: 12px 20px; background: #2c3e50; color: white; border: none; border-radius: 6px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background 0.2s; font-family: inherit; align-self: flex-start; }
-      .comment-form button:hover { background: #1a252f; }
+      .comment-form button:hover:not(:disabled) { background: #1a252f; }
+      .comment-form button:disabled { opacity: 0.8; cursor: not-allowed; }
     </style>
 </BlogPost>
 
@@ -115,7 +112,11 @@ function toFa(num: number) {
           e.preventDefault(); // Stops the browser from leaving the page
           
           const btn = form.querySelector('button');
-          btn.innerText = 'در حال ارسال...'; // "Sending..."
+          const originalText = 'ارسال دیدگاه';
+          
+          // UI Feedback: Sending
+          btn.innerText = 'در حال ارسال...';
+          btn.style.backgroundColor = '#e67e22'; // Orange
           btn.disabled = true;
 
           // Package the form data
@@ -133,18 +134,29 @@ function toFa(num: number) {
             });
 
             if (res.ok) {
-              // Replace the form with a success message!
-              form.innerHTML = '<p style="color: #27ae60; font-weight: bold; background: rgba(39, 174, 96, 0.1); padding: 15px; border-radius: 8px; text-align: center;">دیگاه شما با موفقیت ثبت شد و پس از تایید نمایش داده می‌شود.</p>';
+              // UI Feedback: Success
+              btn.innerText = 'دیدگاه شما ثبت شد و پس از تایید نمایش داده می‌شود.';
+              btn.style.backgroundColor = '#27ae60'; // Green
+              form.reset(); // Clear the text boxes
+              
+              // Reset the button back to normal after 5 seconds
+              setTimeout(() => {
+                btn.disabled = false;
+                btn.innerText = originalText;
+                btn.style.backgroundColor = '';
+              }, 5000);
             } else {
               // If Staticman throws an error, show it so we can debug
               const data = await res.json();
               alert("خطا: " + (data.errorCode || 'نامشخص'));
-              btn.innerText = 'ارسال دیگاه';
+              btn.innerText = originalText;
+              btn.style.backgroundColor = '';
               btn.disabled = false;
             }
           } catch (err) {
             alert("خطا در ارتباط با سرور. لطفاً تنظیمات اینترنت خود را بررسی کنید.");
-            btn.innerText = 'ارسال دیگاه';
+            btn.innerText = originalText;
+            btn.style.backgroundColor = '';
             btn.disabled = false;
           }
         });
