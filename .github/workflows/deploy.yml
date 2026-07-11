@@ -58,7 +58,7 @@ jobs:
           git add .
           if ! git diff-index --quiet HEAD; then
             git commit -m "auto-deployed update from github actions"
-            git push origin main
+            git push origin master
           else
             echo "No changes detected. Skipping push."
           fi
