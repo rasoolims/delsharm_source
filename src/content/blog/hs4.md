@@ -5,7 +5,7 @@ jalaliDate: "۰۷ اردیبهشت ۱۳۹۹"
 tags: ["سفرنامهٔ امریکا", "خاطرات", "همسفر سراب"]
 ---
 <ul>
-<li><span style="LINE-HEIGHT:38px;"><span style="">اگر اولین بار است که این سلسله‌مطالب را می‌خوانید، لطفاً نخست به پیش‌گفتار <a href="http://delsharm.blog.ir/1398/12/18/hs1">در فصل صفرم</a> مراجعه نمایید.</span></span></li>
+<li><span style="LINE-HEIGHT:38px;"><span style="">اگر اولین بار است که این سلسله‌مطالب را می‌خوانید، لطفاً نخست به پیش‌گفتار <a href="https://rasoolims.github.io/delsharm/blog/hs1">در فصل صفرم</a> مراجعه نمایید.</span></span></li>
 <li><span style="LINE-HEIGHT:38px;"><span style="">لطفاً این مطالب را بدون ذکر نام نویسنده و نشانی کامل این صفحه در جایی بازنشر ننماید.</span></span></li>
 </ul>
 <hr>

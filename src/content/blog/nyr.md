@@ -31,7 +31,7 @@ tags: ["یادداشت‌های پراکنده", "خاطرات"]
 <p style="text-align: justify;"><strong><span style="">جنگ بازنمایی</span></strong></p>
 <p style="text-align: justify;"> </p>
 <p style="text-align: justify;"><span style="">حالا فقط یک عکس از خون یا صورت زخمی یا چشم متلاشی‌شده از این اتفاقات اگر یافتید ما را هم خبر کنید. رسانهٔ غربی می‌فهمد که چقدر تصویر تأثیر دارد در احساس کلی جامعه و حس امنیتش. قبلاً مطلبی کوتاه از کتاب «سوزان سونتاگ» روشنفکر فقید آمریکایی در مورد تأثیر تصویر نوشته بودم:</span></p>
-<p style="text-align: justify;"><br><span style=""><a href="https://delsharm.blog.ir/1400/09/17/regrading">https://delsharm.blog.ir/1400/09/17/regrading</a></span></p>
+<p style="text-align: justify;"><br><span style=""><a href="https://rasoolims.github.io/delsharm/blog/regrading">https://rasoolims.github.io/delsharm/blog/regrading</a></span></p>
 <p style="text-align: justify;"> </p>
 <p style="text-align: justify;"><span style="">حالا در مملکت ما، مخالف و موافق با هم مسابقه می‌دهند چه کسی عکس مشمئزکننده‌تری بگذارد. خواننده‌ای به کما می‌رود، باید فیلم جان دادنش دربیاید. سرداری در وسط شهر ترور می‌شود، باید چهرهٔ پاشیده در خونش مخابره شود. پلیسی کسی را می‌زند، باید تا هم فیها خالدون زخم را نشان بدهند، و آن طرف پلیسی کشته می‌شود، باید نشان بدهند پسربچهٔ خردسال آن پلیس چه ضجه‌ای برای پدرش می‌کشد.</span></p>
 <p style="text-align: justify;"> </p>

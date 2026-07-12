@@ -28,51 +28,51 @@ tags: ["کتاب و کتاب‌خوانی", "کتاب"]
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"The Great Divide: Unequal Societies and What We Can Do About Them" by Joseph E. Stiglitz</b></font></p>
 <p style="text-align: justify;" dir="rtl"><font  > یک جورهایی مکمل «بهای نابرابری» است. توضیح مفصل از این کتاب را در این مطلب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/04/08/great_divide">http://delsharm.blog.ir/1397/04/08/great_divide</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/great_divide">https://rasoolims.github.io/delsharm/blog/great_divide</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Who Rules the World?" by Noam Chomsky</b></font></p>
 <p style="text-align: justify;"><font  >یکی از کتاب‌های اخیر چامسکی که در سال ۲۰۱۶ نوشته شده است. چامسکی در این کتاب سعی دارد آمریکایی را که کدخدای جهان است معرفی کند. خلاصهٔ مفصلی از این کتاب را قبلاً در این مطلب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/03/31/who_rules">http://delsharm.blog.ir/1397/03/31/who_rules</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/who_rules">https://rasoolims.github.io/delsharm/blog/who_rules</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Between the World and Me" by Ta-Nehisi Coates</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >دل‌نوشته‌های یک پدر سیاه‌پوست روزنامه‌نگار به فرزند نوجوانش. نشانه‌های عمیق ماندگاری نژادپرستی در آمریکا در این نوشتار هویداست. این کتاب جایزهٔ سال کتاب ملی آمریکا را از آن خود کرده است.</font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"A Man Without a Country" by Kurt Vonnegut</b></font></p>
 <p style="text-align: justify;" dir="rtl"><font  >کتاب بسیار کوتاهی از نویسندهٔ شهیر آمریکایی که با عنوان «مرد بی‌وطن» ترجمه شده است. در این مطلب درباره‌اش نوشته‌ام:</font></p>
-<p style="text-align: justify;"><font  ><a href="http://delsharm.blog.ir/1397/05/21/without_country">http://delsharm.blog.ir/1397/05/21/without_country</a></font></p>
+<p style="text-align: justify;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/without_country">https://rasoolims.github.io/delsharm/blog/without_country</a></font></p>
 <p style="text-align: justify;"><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b>"Evicted: Poverty and Profit in the American City" by Matthew Desmond </b></font></p>
 <p style="text-align: center;" dir="rtl"><font  >کتاب در مورد بی‌خانمان‌های آمریکا با مشاهدهٔ نزدیک نویسنده که استاد جامعه‌شناسی است نوشته شده و جایزهٔ پولیتزر سال ۲۰۱۷ را از آن خود کرده است. در مورد این کتاب در این مطلب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/03/13/evicted">http://delsharm.blog.ir/1397/03/13/evicted</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/evicted">https://rasoolims.github.io/delsharm/blog/evicted</a></font></p>
 <p style="text-align: center;"><font  ><br></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b>"Locking Up Our Own: Crime and Punishment in Black America" by James Forman Jr.</b></font></p>
 <p style="text-align: justify;" dir="rtl"><font  >برندهٔ جایزهٔ پولیتزر سال ۲۰۱۸، در مورد نژادپرستی و وضع سیاهان مخصوصاً آمار بالای زندانیان سیاه‌پوست است. نویسندهٔ کتاب استاد دانشگاه ییل است. این کتاب با دیدگاهی تاریخی ریشهٔ‌ بسیاری از مسائل را واکاوی کرده است. در مورد این کتاب در این مطلب قبلاً چیزهایی نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/02/24/lock-up">http://delsharm.blog.ir/1397/02/24/lock-up</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/lock-up">https://rasoolims.github.io/delsharm/blog/lock-up</a></font></p>
 <p style="text-align: center;"><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"What Money Can't Buy: The Moral Limits of Markets" by Michael J. Sandel</b></font></p>
 <p style="text-align: justify;" dir="rtl"><font  >کتاب مستقیماً در مورد آمریکا نیست ولی در مورد بی‌افسار بودن نظام سرمایه‌داری می‌گوید. این کتاب با عنوان «آنچه با پول نمی‌توان خرید» با ترجمهٔ «حسن افشار» در بازار کتاب ایران موجود است. نویسندهٔ کتاب استاد فلسفهٔ دانشگاه هاروارد است.</font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Weapons of Math Destruction: How Big Data Increases Inequality and Threatens Democracy" by Cathy O'Neil</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >شاید مستقیماً در مورد آمریکا نباشد و شامل همهٔ جاهای دنیا شود. کتاب در مورد اثر مخرب فناوری اطلاعات و تأثیر آن در شکاف طبقاتی است. نویسنده استاد سابق ریاضی دانشگاه کلمبیا و پژوهشگر داده‌پردازی است. در مورد این کتاب در این مطلب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/03/24/math_destruction">http://delsharm.blog.ir/1397/03/24/math_destruction</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/math_destruction">https://rasoolims.github.io/delsharm/blog/math_destruction</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font ><b style=""><font >"Here We Are: Feminism for the Real World" by Kelly Jensen</font></b><font > </font></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >مجموعه مقالات فمینسیت‌های دوآتشهٔ آمریکایی در سال ۲۰۱۷. بعید می‌دانم ترجمه شده باشد یا حتی مجوز ترجمه بگیرد. خواندنش برای آن‌ها که مشتاقند بدانند انتهای شعارهای حقوق زنان چیست بسیار مفید است. در مورد این کتاب قبلاً در این مطلب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/03/07/here_we_are">http://delsharm.blog.ir/1397/03/07/here_we_are</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/here_we_are">https://rasoolims.github.io/delsharm/blog/here_we_are</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Walking to Listen: 4,000 Miles Across America, One Story at a Time" by Andrew Forsthoefel</b></font></p>
 <p style="text-align: center;" dir="rtl"><font  >یک سفرنامه و گزارش از پیاده‌روی در عرض یک سال از شرق به غرب آمریکا در سال ۲۰۱۱ و برخورد با انواع فرهنگ‌های آمریکایی. خلاصهٔ این کتاب را قبلاً در این مطلب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/05/02/walking_to_listen">http://delsharm.blog.ir/1397/05/02/walking_to_listen</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/walking_to_listen">https://rasoolims.github.io/delsharm/blog/walking_to_listen</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Dreams from My Father: A Story of Race and Inheritance" by Barack Obama</b></font></p>
 <p style="text-align: justify;" dir="rtl"><font  >کتابِ خاطرات اوباماست. جزء معدود کتاب‌هایی که در ایران و به زبان انگلیسی خواندم و همزمان با صدای خود اوباما شنیدم. جالب است.</font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Funny in Farsi: A Memoir of Growing Up Iranian in America " by Firoozeh Dumas</b></font></p>
 <p style="text-align: justify;" dir="rtl"><font  >کتاب خاطرات طنز یک ایرانیِ بزرگ‌شده در آمریکا. با عنوان «عطر سنبل، عطر کاج» در بازار نشر موجود است. یک‌جورهایی این کتاب روایت‌گر رویِ مثبت آمریکای سرزمین فرصت‌هاست. قبلاً در مورد این کتاب مفصل نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/04/27/f_duma">http://delsharm.blog.ir/1397/04/27/f_duma</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/f_duma">https://rasoolims.github.io/delsharm/blog/f_duma</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <h1 style="text-align: justify; " dir="rtl"><font  >کتاب‌های داستانی</font></h1>
 <p style="text-align: center;"><font  ><b style="">"The Jungle" by Upton Sinclair</b></font></p>
@@ -80,14 +80,14 @@ tags: ["کتاب و کتاب‌خوانی", "کتاب"]
 <p style="text-align: justify; " dir="rtl"><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"The Great Gatsby" by F. Scott Fitzgerald</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >با عنوان «گتسبی بزرگ» با چندین ترجمه (چه خبر است آقا؟). روایت‌گر سودای رؤیای آمریکایی پس از جنگ اول جهانی. در اینجا نظرم را مفصل دربارهٔ این کتاب نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/05/20/gatsby">http://delsharm.blog.ir/1397/05/20/gatsby</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/gatsby">https://rasoolims.github.io/delsharm/blog/gatsby</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Of Mice and Men" by John Steinbeck</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >«موش‌ها و آدم‌ها» با چندین ترجمه از برندهٔ جایزهٔ نوبل ادبیات. یک شاهکار کوتاه و ادبی در مورد وضعیت تلخ کارگران آمریکایی در زمان شکست اقتصادی دههٔ بیست و سی.</font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"The grapes of wrath" by John Steinbeck</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >«خوشه‌های خشم» معروف از استاین‌بک معروف در مورد وضع زمین‌داران و کارگران در شکست اقتصادی و نقد صریح بانک و نظام سرمایه‌داری. در مورد این کتاب قبلاً در اینجا نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/01/26/grapes_wrath">http://delsharm.blog.ir/1397/01/26/grapes_wrath</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/grapes_wrath">https://rasoolims.github.io/delsharm/blog/grapes_wrath</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"As I Lay Dying" by William Faulkner</b></font></p>
@@ -98,7 +98,7 @@ tags: ["کتاب و کتاب‌خوانی", "کتاب"]
 <p style="text-align: justify; " dir="rtl"><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"The Color Purple" by Alice Walker</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >برندهٔ هر دو جایزهٔ مهم پولیتزر و کتاب ملی آمریکا در سال ۱۹۸۳. این داستان با عنوان «به رنگ ارغوان» ترجمه شده است. روایت‌گر رنج سیاهان و استعمار و استثمار. دربارهٔ این کتاب در اینجا نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/05/27/color-purple">http://delsharm.blog.ir/1397/05/27/color-purple</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/color-purple">https://rasoolims.github.io/delsharm/blog/color-purple</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"The Known World" by Edward P. Jones</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >برندهٔ جایزهٔ پولیتزر در سال ۲۰۰۵ با عنوان «دنیای آشنا» با ترجمهٔ «شیرین معتمدی» موجود است. داستان در مورد برده‌داری در ایالت ویرجینیا در اواخر برده‌داری در آمریکاست. یک تفاوت کلیدی در داستان وجود دارد: ارباب خود سیاه‌پوست آزادشده‌ای است که حالا بدتر از سفیدپوست‌ها با برده‌هایش برخورد می‌کند. ساده‌ترینش بریدن گوش هر برده‌ای است که هوس فرار کند.</font></p>
@@ -111,11 +111,11 @@ tags: ["کتاب و کتاب‌خوانی", "کتاب"]
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font ><b style=""><font >"Salvage the Bones" by Jesmyn Ward</font></b><font > </font></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >برندهٔ جایزهٔ کتاب ملی آمریکا در سال ۲۰۱۱. روایت‌گر وضعیت سیاهان در طوفان کاترینا در اطراف می‌سی‌سی‌پی. قبلاً در مورد این کتاب در اینجا نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1396/12/08/salvage">http://delsharm.blog.ir/1396/12/08/salvage</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/salvage">https://rasoolims.github.io/delsharm/blog/salvage</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"The Round House" by Louise Erdrich</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >اگر برایتان جالب است بدانید الان باقیماندهٔ سرخ‌پوست‌ها چطوری زندگی می‌کنند این کتاب را بخوانید. کتاب جایزهٔ رمان کتاب ملی آمریکا را در سال ۲۰۱۲ برده است. در مورد این کتاب مفصل اینجا نوشته‌ام:</font></p>
-<p style="text-align: center;"><font  ><a href="http://delsharm.blog.ir/1397/03/21/round_house">http://delsharm.blog.ir/1397/03/21/round_house</a></font></p>
+<p style="text-align: center;"><font  ><a href="https://rasoolims.github.io/delsharm/blog/round_house">https://rasoolims.github.io/delsharm/blog/round_house</a></font></p>
 <p style="text-align: justify; "><font  ><br></font></p>
 <p style="text-align: center;"><font  ><b style="">"Homegoing" by Yaa Gyasi</b></font></p>
 <p style="text-align: justify; " dir="rtl"><font  >نویسنده مهاجر اهل غناست و این رمان که در سال ۲۰۱۶ منتشر شده است، روایت‌گر چندین نسل از دو خواهر سیاه‌پوست غنایی است که همدیگر را نمی‌شناسند و نوادگانشان همدیگر را در آمریکا می‌بینند. رمان روایت‌گر درد بردگی و نژادپرستی و استعمار است. </font></p>

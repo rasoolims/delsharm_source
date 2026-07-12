@@ -17,4 +17,4 @@ tags: ["شعر", "غزل", "کتاب-شعر", "قفسه‌نوشت"]
 <p style="text-align: center;"><span style="">گفتم: بیا آیندهٔ من باش، تنها دلیل خندهٔ من باش<br>خندید و ساعت را نگاهی کرد، پرسید: بعد از من چه خواهی کرد؟</span></p>
 <p> </p>
 <p> </p>
-<p><span style="">* در مورد دفتر قبلی این شاعر <a href="https://delsharm.blog.ir/1401/08/11/aamt">اینجا </a>نوشته‌ام. </span></p>
+<p><span style="">* در مورد دفتر قبلی این شاعر <a href="https://rasoolims.github.io/delsharm/blog/aamt">اینجا </a>نوشته‌ام. </span></p>
