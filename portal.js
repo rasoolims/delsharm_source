@@ -71,8 +71,9 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="utf-8">
         <title>پنل مدیریت دلشرم</title>
+        <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
         <style>
-            body { font-family: Tahoma, Vazirmatn, sans-serif; background: #f4f6f7; padding: 20px; color: #333; }
+            body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f4f6f7; padding: 20px; color: #333; }
             .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
             
             .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
@@ -119,8 +120,7 @@ app.get('/', (req, res) => {
                     <h1>مدیریت پست‌ها</h1>
                     <div class="header-actions">
                         <button class="btn-new" onclick="createNewPost()">➕ پست جدید</button>
-                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت (Pull)</button>
-                        <button onclick="pushChanges()" style="background: #8e44ad;">⬆️ ارسال (Push)</button>
+                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها (Git Pull)</button>
                     </div>
                 </div>
                 <div id="post-list"></div>
@@ -131,7 +131,7 @@ app.get('/', (req, res) => {
                 <h2 id="editing-title"></h2>
                 <textarea id="post-content"></textarea>
                 <br><br>
-                <button onclick="saveAndCommit()">ذخیره و کامیت در گیت</button>
+                <button onclick="saveAndCommit()">ذخیره و ارسال به گیت‌هاب</button>
                 <button class="btn-cancel" onclick="showDashboard()">لغو</button>
             </div>
 
@@ -171,6 +171,7 @@ app.get('/', (req, res) => {
                         <div>
                             <button class="btn-comments" onclick="openComments('\${post.slug}', '\${post.title}')">نظرات</button>
                             <button onclick="editPost('\${post.filename}')">ویرایش</button>
+                            <button class="btn-delete" style="margin-right: 5px;" onclick="deletePost('\${post.filename}', event)">🗑️ حذف</button>
                         </div>
                     </div>
                 \`).join('');
@@ -256,7 +257,7 @@ pinned: false
             async function saveAndCommit() {
                 const content = document.getElementById('post-content').value;
                 const btn = document.querySelector('button[onclick="saveAndCommit()"]');
-                btn.innerText = 'در حال کامیت...';
+                btn.innerText = 'در حال ذخیره و ارسال...';
                 btn.disabled = true;
                 
                 const res = await fetch('/api/save', {
@@ -266,11 +267,35 @@ pinned: false
                 });
 
                 if(res.ok) {
-                    alert('با موفقیت ذخیره و در گیت کامیت شد!');
+                    alert('با موفقیت ذخیره و به گیت‌هاب ارسال شد!');
                     location.reload();
                 } else {
-                    alert('خطا در ذخیره‌سازی');
-                    btn.innerText = 'ذخیره و کامیت در گیت';
+                    alert('خطا در ذخیره یا ارسال');
+                    btn.innerText = 'ذخیره و ارسال به گیت‌هاب';
+                    btn.disabled = false;
+                }
+            }
+
+            async function deletePost(filename, event) {
+                if (!confirm('آیا از حذف این پست مطمئن هستید؟ این عملیات مستقیماً در گیت‌هاب اعمال شده و غیرقابل بازگشت است!')) return;
+                
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = 'در حال حذف و ارسال...';
+                btn.disabled = true;
+
+                const res = await fetch('/api/delete-post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: filename })
+                });
+
+                if (res.ok) {
+                    alert('پست با موفقیت حذف و به گیت‌هاب ارسال شد.');
+                    location.reload();
+                } else {
+                    alert('خطا در حذف پست');
+                    btn.innerText = originalText;
                     btn.disabled = false;
                 }
             }
@@ -292,7 +317,7 @@ pinned: false
                 let html = '';
                 comments.forEach(c => {
                     const existingReply = c.adminResponse ? c.adminResponse.message : '';
-                    const btnLabel = c.adminResponse ? 'ویرایش پاسخ و کامیت' : 'ثبت پاسخ و کامیت';
+                    const btnLabel = c.adminResponse ? 'ویرایش پاسخ و ارسال' : 'ثبت پاسخ و ارسال';
 
                     html += \`
                     <div class="comment-card" id="comment-\${c.filename.replace('.yml', '')}">
@@ -319,7 +344,7 @@ pinned: false
                 
                 const btn = event.target;
                 const originalText = btn.innerText;
-                btn.innerText = 'در حال ثبت...';
+                btn.innerText = 'در حال ثبت و ارسال...';
                 btn.disabled = true;
 
                 const res = await fetch('/api/reply', {
@@ -329,8 +354,8 @@ pinned: false
                 });
 
                 if(res.ok) {
-                    alert('پاسخ با موفقیت ثبت و کامیت شد!');
-                    btn.innerText = 'ثبت شد';
+                    alert('پاسخ با موفقیت ثبت و به گیت‌هاب ارسال شد!');
+                    btn.innerText = 'ثبت و ارسال شد';
                     btn.disabled = false;
                 } else {
                     alert('خطا در ثبت پاسخ');
@@ -340,11 +365,11 @@ pinned: false
             }
 
             async function deleteComment(commentFilename, event) {
-                if (!confirm('آیا از حذف این دیدگاه مطمئن هستید؟ این عملیات در گیت ثبت می‌شود و قابل بازگشت نیست!')) return;
+                if (!confirm('آیا از حذف این دیدگاه مطمئن هستید؟ این عملیات مستقیماً در گیت‌هاب اعمال شده و غیرقابل بازگشت است!')) return;
                 
                 const btn = event.target;
                 const originalText = btn.innerText;
-                btn.innerText = 'در حال حذف...';
+                btn.innerText = 'در حال حذف و ارسال...';
                 btn.disabled = true;
 
                 const res = await fetch('/api/delete-comment', {
@@ -354,8 +379,7 @@ pinned: false
                 });
 
                 if (res.ok) {
-                    alert('دیدگاه با موفقیت حذف شد.');
-                    // Visually remove the comment from the screen immediately
+                    alert('دیدگاه با موفقیت حذف و به گیت‌هاب ارسال شد.');
                     btn.closest('.comment-card').remove();
                 } else {
                     alert('خطا در حذف دیدگاه');
@@ -386,27 +410,6 @@ pinned: false
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
-            async function pushChanges() {
-                const btn = document.querySelector('button[onclick="pushChanges()"]');
-                const originalText = btn.innerText;
-                btn.innerText = 'در حال ارسال...';
-                btn.disabled = true;
-
-                try {
-                    const res = await fetch('/api/push', { method: 'POST' });
-                    if(res.ok) {
-                        alert('تغییرات با موفقیت به گیت‌هاب ارسال شد!');
-                    } else {
-                        const errorMsg = await res.text();
-                        alert('خطا در ارسال اطلاعات: ' + errorMsg);
-                    }
-                } catch (e) {
-                    alert('خطا در ارتباط با سرور.');
-                }
-                
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
 
             renderPostList();
         </script>
@@ -423,7 +426,7 @@ app.get('/api/post/:filename', (req, res) => {
     res.send(content);
 });
 
-// 3. API: Save Post and Git Commit
+// 3. API: Save Post, Commit, and Auto-Push
 app.post('/api/save', async (req, res) => {
     const { filename, content } = req.body;
     const filePath = path.join(postsDir, filename);
@@ -432,6 +435,7 @@ app.post('/api/save', async (req, res) => {
         fs.writeFileSync(filePath, content, 'utf-8');
         await git.add(filePath);
         await git.commit(`Update post ${filename} via local portal`);
+        await git.push(); // AUTO PUSH
         res.sendStatus(200);
     } catch (error) {
         console.error(error);
@@ -439,7 +443,28 @@ app.post('/api/save', async (req, res) => {
     }
 });
 
-// 4. API: Get Comments for a specific Slug
+// 4. API: Delete Post, Commit, and Auto-Push
+app.post('/api/delete-post', async (req, res) => {
+    const { filename } = req.body;
+    const filePath = path.join(postsDir, filename);
+    
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            await git.add(filePath);
+            await git.commit(`Deleted post ${filename} via local portal`);
+            await git.push(); // AUTO PUSH
+            res.sendStatus(200);
+        } else {
+            res.status(404).send('Post file not found');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 5. API: Get Comments for a specific Slug
 app.get('/api/comments/:slug', (req, res) => {
     const slug = req.params.slug;
     const results = [];
@@ -461,7 +486,7 @@ app.get('/api/comments/:slug', (req, res) => {
     res.json(results);
 });
 
-// 5. API: Submit Admin Reply to a Comment
+// 6. API: Submit Admin Reply, Commit, and Auto-Push
 app.post('/api/reply', async (req, res) => {
     const { filename, message } = req.body;
     const filepath = path.join(commentsDir, filename);
@@ -478,6 +503,7 @@ app.post('/api/reply', async (req, res) => {
         fs.writeFileSync(filepath, yaml.dump(parsed), 'utf8');
         await git.add(filepath);
         await git.commit(`Admin reply added/updated on comment ${filename}`);
+        await git.push(); // AUTO PUSH
         res.sendStatus(200);
     } catch (error) {
         console.error(error);
@@ -485,31 +511,17 @@ app.post('/api/reply', async (req, res) => {
     }
 });
 
-// 6. API: Git Pull
-app.post('/api/pull', async (req, res) => {
-    try {
-        await git.pull();
-        res.sendStatus(200);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
-});
-
-// 7. API: Delete a Comment
+// 7. API: Delete a Comment, Commit, and Auto-Push
 app.post('/api/delete-comment', async (req, res) => {
     const { filename } = req.body;
     const filepath = path.join(commentsDir, filename);
     
     try {
         if (fs.existsSync(filepath)) {
-            // Remove the file from the hard drive
             fs.unlinkSync(filepath);
-            
-            // Stage the deletion in Git and commit it
             await git.add(filepath);
             await git.commit(`Deleted comment ${filename} via local portal`);
-            
+            await git.push(); // AUTO PUSH
             res.sendStatus(200);
         } else {
             res.status(404).send('Comment file not found');
@@ -520,10 +532,10 @@ app.post('/api/delete-comment', async (req, res) => {
     }
 });
 
-// 8. API: Git Push
-app.post('/api/push', async (req, res) => {
+// 8. API: Git Pull
+app.post('/api/pull', async (req, res) => {
     try {
-        await git.push();
+        await git.pull();
         res.sendStatus(200);
     } catch (error) {
         console.error(error);
