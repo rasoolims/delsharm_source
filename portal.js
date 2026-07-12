@@ -96,7 +96,16 @@ app.get('/', (req, res) => {
             .btn-cancel { background: #e74c3c; margin-right: 10px; }
             .btn-delete { background: #c0392b; font-size: 0.8em; padding: 5px 10px; }
             
-            textarea { width: 100%; height: 400px; margin-top: 20px; padding: 15px; direction: ltr; font-family: monospace; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; line-height: 1.5; }
+            /* Forms & Editor */
+            .form-group { margin-bottom: 20px; }
+            .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+            .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 1em; box-sizing: border-box; }
+            
+            .toolbar { display: flex; gap: 5px; margin-bottom: 5px; background: #ecf0f1; padding: 8px; border-radius: 8px 8px 0 0; border: 1px solid #ccc; border-bottom: none; flex-wrap: wrap; }
+            .toolbar button { background: white; color: #333; border: 1px solid #bdc3c7; padding: 5px 10px; font-size: 0.9em; font-weight: normal; border-radius: 4px; }
+            .toolbar button:hover { background: #e0e6ed; }
+            
+            textarea { width: 100%; height: 400px; padding: 15px; direction: ltr; font-family: monospace; border: 1px solid #ccc; border-radius: 0 0 8px 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; }
             
             /* Pagination */
             .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
@@ -108,18 +117,19 @@ app.get('/', (req, res) => {
             .comment-card { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; position: relative; }
             .comment-card h4 { margin: 0 0 10px 0; color: #2c3e50; }
             .reply-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
-            .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;}
+            .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;}
             .comment-actions { display: flex; justify-content: space-between; align-items: flex-end; }
         </style>
     </head>
     <body>
         <div class="container">
             
+            <!-- DASHBOARD VIEW -->
             <div id="dashboard-view">
                 <div class="header-bar">
                     <h1>مدیریت پست‌ها</h1>
                     <div class="header-actions">
-                        <button class="btn-new" onclick="createNewPost()">➕ پست جدید</button>
+                        <button class="btn-new" onclick="showNewPostForm()">➕ پست جدید</button>
                         <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها (Git Pull)</button>
                     </div>
                 </div>
@@ -127,14 +137,47 @@ app.get('/', (req, res) => {
                 <div id="pagination-controls" class="pagination"></div>
             </div>
             
+            <!-- NEW POST FORM VIEW -->
+            <div id="new-post-section" style="display:none;">
+                <h2>ایجاد پست جدید</h2>
+                <div class="form-group">
+                    <label>عنوان پست:</label>
+                    <input type="text" id="new-title" placeholder="مثال: یادداشتی بر یک کتاب">
+                </div>
+                <div class="form-group">
+                    <label>نام فایل انگلیسی (برای لینک صفحه):</label>
+                    <input type="text" id="new-slug" placeholder="مثال: book-review-2024" dir="ltr">
+                    <small style="color: #7f8c8d;">بدون فاصله. در صورت وجود فاصله، به‌طور خودکار با خط تیره جایگزین می‌شود.</small>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="startNewPost()">ادامه به ویرایشگر</button>
+                    <button class="btn-cancel" onclick="showDashboard()">لغو</button>
+                </div>
+            </div>
+
+            <!-- EDITOR VIEW -->
             <div id="editor-section" style="display:none;">
                 <h2 id="editing-title"></h2>
+                
+                <!-- Formatting Toolbar -->
+                <div class="toolbar">
+                    <button onclick="insertMarkdown('**', '**')" title="Bold"><b>B</b></button>
+                    <button onclick="insertMarkdown('*', '*')" title="Italic"><i>I</i></button>
+                    <button onclick="insertMarkdown('## ', '')" title="Heading 2">H2</button>
+                    <button onclick="insertMarkdown('### ', '')" title="Heading 3">H3</button>
+                    <button onclick="insertMarkdown('> ', '')" title="Quote">❞</button>
+                    <button onclick="insertMarkdown('[', '](url)')" title="Link">🔗 Link</button>
+                    <button onclick="insertMarkdown('![', '](image-url.jpg)')" title="Image">🖼️ Image</button>
+                    <button onclick="insertMarkdown('- ', '')" title="List">⚫ List</button>
+                </div>
+                
                 <textarea id="post-content"></textarea>
                 <br><br>
                 <button onclick="saveAndCommit()">ذخیره و ارسال به گیت‌هاب</button>
                 <button class="btn-cancel" onclick="showDashboard()">لغو</button>
             </div>
 
+            <!-- COMMENTS VIEW -->
             <div id="comments-section" style="display:none;">
                 <h2 id="comments-title"></h2>
                 <button class="btn-cancel" onclick="showDashboard()" style="margin-bottom: 20px;">بازگشت به داشبورد</button>
@@ -150,10 +193,17 @@ app.get('/', (req, res) => {
             const postsPerPage = 20;
             let currentFile = '';
 
+            // --- HELPER: Convert English digits to Persian digits ---
+            function toFa(num) {
+                const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                return num.toString().replace(/[0-9]/g, x => farsiDigits[x]);
+            }
+
             function showDashboard() {
                 document.getElementById('dashboard-view').style.display = 'block';
                 document.getElementById('editor-section').style.display = 'none';
                 document.getElementById('comments-section').style.display = 'none';
+                document.getElementById('new-post-section').style.display = 'none';
                 renderPostList();
             }
 
@@ -166,7 +216,7 @@ app.get('/', (req, res) => {
                     <div class="post-item">
                         <div class="post-info">
                             <strong>\${post.title}</strong>
-                            <span class="meta-tag">💬 \${post.comments} دیدگاه</span>
+                            <span class="meta-tag">💬 \${toFa(post.comments)} دیدگاه</span>
                         </div>
                         <div>
                             <button class="btn-comments" onclick="openComments('\${post.slug}', '\${post.title}')">نظرات</button>
@@ -186,7 +236,7 @@ app.get('/', (req, res) => {
                 
                 if (totalPages <= 9) {
                     for (let i = 1; i <= totalPages; i++) {
-                        html += \`<button class="page-btn \${i === currentPage ? 'active' : ''}" onclick="goToPage(\${i})">\${i}</button>\`;
+                        html += \`<button class="page-btn \${i === currentPage ? 'active' : ''}" onclick="goToPage(\${i})">\${toFa(i)}</button>\`;
                     }
                 } else {
                     let pages = new Set();
@@ -203,7 +253,7 @@ app.get('/', (req, res) => {
                         if (prev && p - prev > 1) {
                             html += \`<span class="page-ellipsis">...</span>\`;
                         }
-                        html += \`<button class="page-btn \${p === currentPage ? 'active' : ''}" onclick="goToPage(\${p})">\${p}</button>\`;
+                        html += \`<button class="page-btn \${p === currentPage ? 'active' : ''}" onclick="goToPage(\${p})">\${toFa(p)}</button>\`;
                         prev = p;
                     }
                 }
@@ -215,24 +265,43 @@ app.get('/', (req, res) => {
                 renderPostList();
             }
 
-            async function editPost(filename) {
-                const res = await fetch('/api/post/' + filename);
-                const content = await res.text();
-                currentFile = filename;
+            // --- EDITOR TOOLBAR ---
+            function insertMarkdown(prefix, suffix = '') {
+                const textarea = document.getElementById('post-content');
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const selectedText = text.substring(start, end);
                 
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('editor-section').style.display = 'block';
-                document.getElementById('editing-title').innerText = 'در حال ویرایش: ' + filename;
-                document.getElementById('post-content').value = content;
+                const replacement = prefix + selectedText + suffix;
+                textarea.value = text.substring(0, start) + replacement + text.substring(end);
+                
+                textarea.focus();
+                if (selectedText.length === 0) {
+                    textarea.selectionStart = textarea.selectionEnd = start + prefix.length;
+                } else {
+                    textarea.selectionStart = textarea.selectionEnd = start + replacement.length;
+                }
             }
 
-            function createNewPost() {
-                const slug = prompt("لطفاً نام فایل (انگلیسی و بدون فاصله) را وارد کنید:");
-                if (!slug) return;
-                
-                const title = prompt("عنوان پست را وارد کنید:");
-                if (!title) return;
+            // --- NEW POST LOGIC ---
+            function showNewPostForm() {
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('new-post-section').style.display = 'block';
+                document.getElementById('new-title').value = '';
+                document.getElementById('new-slug').value = '';
+            }
 
+            function startNewPost() {
+                const title = document.getElementById('new-title').value;
+                let slug = document.getElementById('new-slug').value;
+                
+                if (!title || !slug) {
+                    alert('لطفاً هم عنوان و هم نام فایل را وارد کنید.');
+                    return;
+                }
+
+                slug = slug.trim().replace(/\\s+/g, '-').toLowerCase();
                 const filename = slug.endsWith('.md') ? slug : slug + '.md';
                 currentFile = filename;
                 
@@ -248,10 +317,21 @@ pinned: false
 متن پست خود را اینجا بنویسید...
 \`;
                 
-                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('new-post-section').style.display = 'none';
                 document.getElementById('editor-section').style.display = 'block';
                 document.getElementById('editing-title').innerText = 'ایجاد پست جدید: ' + filename;
                 document.getElementById('post-content').value = template;
+            }
+
+            async function editPost(filename) {
+                const res = await fetch('/api/post/' + filename);
+                const content = await res.text();
+                currentFile = filename;
+                
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('editor-section').style.display = 'block';
+                document.getElementById('editing-title').innerText = 'در حال ویرایش: ' + filename;
+                document.getElementById('post-content').value = content;
             }
 
             async function saveAndCommit() {
@@ -317,17 +397,21 @@ pinned: false
                 let html = '';
                 comments.forEach(c => {
                     const existingReply = c.adminResponse ? c.adminResponse.message : '';
-                    const btnLabel = c.adminResponse ? 'ویرایش پاسخ و ارسال' : 'ثبت پاسخ و ارسال';
+                    const btnLabel = 'ثبت تغییرات و ارسال';
+                    const jalaliDate = toFa(new Date(c.date).toLocaleDateString('fa-IR'));
 
                     html += \`
                     <div class="comment-card" id="comment-\${c.filename.replace('.yml', '')}">
-                        <h4>\${c.name} (\${new Date(c.date).toLocaleDateString('fa-IR')})</h4>
-                        <p style="white-space: pre-wrap;">\${c.message}</p>
+                        <h4>\${c.name} (\${jalaliDate})</h4>
+                        
+                        <label style="font-size: 0.85em; color: #7f8c8d; font-weight: bold;">متن دیدگاه (قابل ویرایش):</label>
+                        <textarea id="msg-\${c.filename}" class="reply-textarea" style="background: #fff; height: 60px; margin-bottom: 15px;">\${c.message}</textarea>
                         
                         <div class="reply-box">
+                            <label style="font-size: 0.85em; color: #7f8c8d; font-weight: bold;">پاسخ شما:</label>
                             <textarea id="reply-\${c.filename}" class="reply-textarea" placeholder="پاسخ خود را اینجا بنویسید...">\${existingReply}</textarea><br>
                             <div class="comment-actions">
-                                <button onclick="submitReply('\${c.filename}', event)">\${btnLabel}</button>
+                                <button onclick="updateCommentData('\${c.filename}', event)">\${btnLabel}</button>
                                 <button class="btn-delete" onclick="deleteComment('\${c.filename}', event)">🗑️ حذف دیدگاه</button>
                             </div>
                         </div>
@@ -338,27 +422,29 @@ pinned: false
                 document.getElementById('comments-container').innerHTML = html;
             }
 
-            async function submitReply(commentFilename, event) {
+            async function updateCommentData(commentFilename, event) {
+                const userMsgText = document.getElementById('msg-' + commentFilename).value;
                 const replyText = document.getElementById('reply-' + commentFilename).value;
-                if (!replyText.trim()) { alert('پاسخ نمی‌تواند خالی باشد!'); return; }
+                
+                if (!userMsgText.trim()) { alert('متن دیدگاه کاربر نمی‌تواند خالی باشد!'); return; }
                 
                 const btn = event.target;
                 const originalText = btn.innerText;
                 btn.innerText = 'در حال ثبت و ارسال...';
                 btn.disabled = true;
 
-                const res = await fetch('/api/reply', {
+                const res = await fetch('/api/update-comment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: commentFilename, message: replyText })
+                    body: JSON.stringify({ filename: commentFilename, reply: replyText, userMessage: userMsgText })
                 });
 
                 if(res.ok) {
-                    alert('پاسخ با موفقیت ثبت و به گیت‌هاب ارسال شد!');
+                    alert('تغییرات با موفقیت ثبت و به گیت‌هاب ارسال شد!');
                     btn.innerText = 'ثبت و ارسال شد';
                     btn.disabled = false;
                 } else {
-                    alert('خطا در ثبت پاسخ');
+                    alert('خطا در ثبت تغییرات');
                     btn.innerText = originalText;
                     btn.disabled = false;
                 }
@@ -486,23 +572,32 @@ app.get('/api/comments/:slug', (req, res) => {
     res.json(results);
 });
 
-// 6. API: Submit Admin Reply, Commit, and Auto-Push
-app.post('/api/reply', async (req, res) => {
-    const { filename, message } = req.body;
+// 6. API: Update Comment (Admin Reply + Edit User Message), Commit, and Auto-Push
+app.post('/api/update-comment', async (req, res) => {
+    const { filename, reply, userMessage } = req.body;
     const filepath = path.join(commentsDir, filename);
     
     try {
         const content = fs.readFileSync(filepath, 'utf8');
         const parsed = yaml.load(content);
         
-        parsed.adminResponse = {
-            date: new Date().toISOString(),
-            message: message
-        };
+        // Save the moderated/edited user message
+        parsed.message = userMessage;
+        
+        // Handle the admin response
+        if (reply && reply.trim() !== '') {
+            parsed.adminResponse = {
+                date: parsed.adminResponse ? parsed.adminResponse.date : new Date().toISOString(),
+                message: reply
+            };
+        } else {
+            // Remove the reply entirely if the box is empty
+            delete parsed.adminResponse; 
+        }
         
         fs.writeFileSync(filepath, yaml.dump(parsed), 'utf8');
         await git.add(filepath);
-        await git.commit(`Admin reply added/updated on comment ${filename}`);
+        await git.commit(`Moderated comment/reply for ${filename} via local portal`);
         await git.push(); // AUTO PUSH
         res.sendStatus(200);
     } catch (error) {
