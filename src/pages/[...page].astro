@@ -9,7 +9,9 @@ export async function getStaticPaths({ paginate }) {
     const sortedPosts = allPosts.sort((a, b) => {
         if (a.data.pinned && !b.data.pinned) return -1;
         if (!a.data.pinned && b.data.pinned) return 1;
-        return b.data.date.getTime() - a.data.date.getTime();
+        
+        // Wrap the dates in new Date() to prevent the crash
+        return new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
     });
 
     // 2. THEN PAGINATE THE SORTED POSTS
@@ -17,15 +19,9 @@ export async function getStaticPaths({ paginate }) {
 }
 
 const { page } = Astro.props;
+
+// Fetch allPosts again ONLY to build your tags and archives sidebar counts
 const allPosts = await getCollection('blog');
-const sortedPosts = allPosts.sort((a, b) => {
-    // 1. If A is pinned and B is not, A goes first
-    if (a.data.pinned && !b.data.pinned) return -1;
-    // 2. If B is pinned and A is not, B goes first
-    if (!a.data.pinned && b.data.pinned) return 1;
-    // 3. Otherwise, sort normally by date
-    return b.data.date.getTime() - a.data.date.getTime();
-});
 
 // --- TAGS & ARCHIVES LOGIC ---
 const tagCounts: Record<string, number> = {};

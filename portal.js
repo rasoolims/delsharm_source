@@ -85,26 +85,30 @@ app.get('/', (req, res) => {
             
             .meta-tag { font-size: 0.85em; color: #7f8c8d; background: #ecf0f1; padding: 3px 8px; border-radius: 10px; display: inline-block; width: fit-content; }
             
-            button { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; }
-            button:hover { opacity: 0.9; }
+            button { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: background 0.2s; }
+            button:hover:not(:disabled) { opacity: 0.9; }
+            button:disabled { opacity: 0.6; cursor: not-allowed; }
             
             .btn-pull { background: #27ae60; }
             .btn-new { background: #9b59b6; }
             .btn-comments { background: #e67e22; margin-left: 5px; }
             .btn-cancel { background: #e74c3c; margin-right: 10px; }
+            .btn-delete { background: #c0392b; font-size: 0.8em; padding: 5px 10px; }
             
             textarea { width: 100%; height: 400px; margin-top: 20px; padding: 15px; direction: ltr; font-family: monospace; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; line-height: 1.5; }
             
             /* Pagination */
-            .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-            .page-btn { background: #ecf0f1; color: #333; }
+            .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+            .page-btn { background: #ecf0f1; color: #333; min-width: 35px; padding: 8px 12px; }
             .page-btn.active { background: #3498db; color: white; }
+            .page-ellipsis { color: #7f8c8d; font-weight: bold; padding: 0 5px; }
 
             /* Comments Section */
-            .comment-card { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; }
+            .comment-card { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; position: relative; }
             .comment-card h4 { margin: 0 0 10px 0; color: #2c3e50; }
             .reply-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
-            .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; }
+            .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;}
+            .comment-actions { display: flex; justify-content: space-between; align-items: flex-end; }
         </style>
     </head>
     <body>
@@ -115,7 +119,8 @@ app.get('/', (req, res) => {
                     <h1>مدیریت پست‌ها</h1>
                     <div class="header-actions">
                         <button class="btn-new" onclick="createNewPost()">➕ پست جدید</button>
-                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها (Git Pull)</button>
+                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت (Pull)</button>
+                        <button onclick="pushChanges()" style="background: #8e44ad;">⬆️ ارسال (Push)</button>
                     </div>
                 </div>
                 <div id="post-list"></div>
@@ -139,14 +144,12 @@ app.get('/', (req, res) => {
         </div>
 
         <script>
-            // Load all post data securely from the backend
             const ALL_POSTS = ${JSON.stringify(postsData)};
             
             let currentPage = 1;
             const postsPerPage = 20;
             let currentFile = '';
 
-            // --- NAVIGATION ---
             function showDashboard() {
                 document.getElementById('dashboard-view').style.display = 'block';
                 document.getElementById('editor-section').style.display = 'none';
@@ -154,7 +157,6 @@ app.get('/', (req, res) => {
                 renderPostList();
             }
 
-            // --- PAGINATION & RENDERING ---
             function renderPostList() {
                 const start = (currentPage - 1) * postsPerPage;
                 const end = start + postsPerPage;
@@ -180,8 +182,29 @@ app.get('/', (req, res) => {
             function renderPaginationControls() {
                 const totalPages = Math.ceil(ALL_POSTS.length / postsPerPage);
                 let html = '';
-                for (let i = 1; i <= totalPages; i++) {
-                    html += \`<button class="page-btn \${i === currentPage ? 'active' : ''}" onclick="goToPage(\${i})">\${i}</button>\`;
+                
+                if (totalPages <= 9) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        html += \`<button class="page-btn \${i === currentPage ? 'active' : ''}" onclick="goToPage(\${i})">\${i}</button>\`;
+                    }
+                } else {
+                    let pages = new Set();
+                    for(let i = 1; i <= 5; i++) pages.add(i);
+                    for(let i = totalPages - 2; i <= totalPages; i++) pages.add(i);
+                    if (currentPage > 1) pages.add(currentPage - 1);
+                    pages.add(currentPage);
+                    if (currentPage < totalPages) pages.add(currentPage + 1);
+                    
+                    let sortedPages = Array.from(pages).sort((a,b) => a - b).filter(p => p > 0 && p <= totalPages);
+                    
+                    let prev = 0;
+                    for (let p of sortedPages) {
+                        if (prev && p - prev > 1) {
+                            html += \`<span class="page-ellipsis">...</span>\`;
+                        }
+                        html += \`<button class="page-btn \${p === currentPage ? 'active' : ''}" onclick="goToPage(\${p})">\${p}</button>\`;
+                        prev = p;
+                    }
                 }
                 document.getElementById('pagination-controls').innerHTML = html;
             }
@@ -191,7 +214,6 @@ app.get('/', (req, res) => {
                 renderPostList();
             }
 
-            // --- POST EDITOR ---
             async function editPost(filename) {
                 const res = await fetch('/api/post/' + filename);
                 const content = await res.text();
@@ -253,7 +275,6 @@ pinned: false
                 }
             }
 
-            // --- COMMENTS MANAGEMENT ---
             async function openComments(slug, title) {
                 document.getElementById('dashboard-view').style.display = 'none';
                 document.getElementById('comments-section').style.display = 'block';
@@ -270,18 +291,20 @@ pinned: false
 
                 let html = '';
                 comments.forEach(c => {
+                    const existingReply = c.adminResponse ? c.adminResponse.message : '';
+                    const btnLabel = c.adminResponse ? 'ویرایش پاسخ و کامیت' : 'ثبت پاسخ و کامیت';
+
                     html += \`
-                    <div class="comment-card">
+                    <div class="comment-card" id="comment-\${c.filename.replace('.yml', '')}">
                         <h4>\${c.name} (\${new Date(c.date).toLocaleDateString('fa-IR')})</h4>
                         <p style="white-space: pre-wrap;">\${c.message}</p>
                         
                         <div class="reply-box">
-                            \${c.adminResponse ? 
-                                \`<p><strong>پاسخ شما:</strong> \${c.adminResponse.message}</p>\` 
-                                : 
-                                \`<textarea id="reply-\${c.filename}" class="reply-textarea" placeholder="پاسخ خود را اینجا بنویسید..."></textarea><br>
-                                 <button onclick="submitReply('\${c.filename}')">ثبت پاسخ و کامیت</button>\`
-                            }
+                            <textarea id="reply-\${c.filename}" class="reply-textarea" placeholder="پاسخ خود را اینجا بنویسید...">\${existingReply}</textarea><br>
+                            <div class="comment-actions">
+                                <button onclick="submitReply('\${c.filename}', event)">\${btnLabel}</button>
+                                <button class="btn-delete" onclick="deleteComment('\${c.filename}', event)">🗑️ حذف دیدگاه</button>
+                            </div>
                         </div>
                     </div>
                     \`;
@@ -290,11 +313,12 @@ pinned: false
                 document.getElementById('comments-container').innerHTML = html;
             }
 
-            async function submitReply(commentFilename) {
+            async function submitReply(commentFilename, event) {
                 const replyText = document.getElementById('reply-' + commentFilename).value;
                 if (!replyText.trim()) { alert('پاسخ نمی‌تواند خالی باشد!'); return; }
                 
                 const btn = event.target;
+                const originalText = btn.innerText;
                 btn.innerText = 'در حال ثبت...';
                 btn.disabled = true;
 
@@ -306,16 +330,40 @@ pinned: false
 
                 if(res.ok) {
                     alert('پاسخ با موفقیت ثبت و کامیت شد!');
-                    // Optionally close or refresh the panel here
                     btn.innerText = 'ثبت شد';
+                    btn.disabled = false;
                 } else {
                     alert('خطا در ثبت پاسخ');
-                    btn.innerText = 'ثبت پاسخ و کامیت';
+                    btn.innerText = originalText;
                     btn.disabled = false;
                 }
             }
 
-            // --- GIT PULL ---
+            async function deleteComment(commentFilename, event) {
+                if (!confirm('آیا از حذف این دیدگاه مطمئن هستید؟ این عملیات در گیت ثبت می‌شود و قابل بازگشت نیست!')) return;
+                
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = 'در حال حذف...';
+                btn.disabled = true;
+
+                const res = await fetch('/api/delete-comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: commentFilename })
+                });
+
+                if (res.ok) {
+                    alert('دیدگاه با موفقیت حذف شد.');
+                    // Visually remove the comment from the screen immediately
+                    btn.closest('.comment-card').remove();
+                } else {
+                    alert('خطا در حذف دیدگاه');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }
+
             async function pullChanges() {
                 const btn = document.querySelector('.btn-pull');
                 const originalText = btn.innerText;
@@ -338,8 +386,28 @@ pinned: false
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
+            async function pushChanges() {
+                const btn = document.querySelector('button[onclick="pushChanges()"]');
+                const originalText = btn.innerText;
+                btn.innerText = 'در حال ارسال...';
+                btn.disabled = true;
 
-            // Initialize Dashboard
+                try {
+                    const res = await fetch('/api/push', { method: 'POST' });
+                    if(res.ok) {
+                        alert('تغییرات با موفقیت به گیت‌هاب ارسال شد!');
+                    } else {
+                        const errorMsg = await res.text();
+                        alert('خطا در ارسال اطلاعات: ' + errorMsg);
+                    }
+                } catch (e) {
+                    alert('خطا در ارتباط با سرور.');
+                }
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+
             renderPostList();
         </script>
     </body>
@@ -389,7 +457,6 @@ app.get('/api/comments/:slug', (req, res) => {
             }
         }
     }
-    // Sort comments chronologically so newest is at the bottom
     results.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     res.json(results);
 });
@@ -408,11 +475,9 @@ app.post('/api/reply', async (req, res) => {
             message: message
         };
         
-        // Write the updated YAML back to the file
         fs.writeFileSync(filepath, yaml.dump(parsed), 'utf8');
-        
         await git.add(filepath);
-        await git.commit(`Admin reply added to comment ${filename}`);
+        await git.commit(`Admin reply added/updated on comment ${filename}`);
         res.sendStatus(200);
     } catch (error) {
         console.error(error);
@@ -424,6 +489,41 @@ app.post('/api/reply', async (req, res) => {
 app.post('/api/pull', async (req, res) => {
     try {
         await git.pull();
+        res.sendStatus(200);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 7. API: Delete a Comment
+app.post('/api/delete-comment', async (req, res) => {
+    const { filename } = req.body;
+    const filepath = path.join(commentsDir, filename);
+    
+    try {
+        if (fs.existsSync(filepath)) {
+            // Remove the file from the hard drive
+            fs.unlinkSync(filepath);
+            
+            // Stage the deletion in Git and commit it
+            await git.add(filepath);
+            await git.commit(`Deleted comment ${filename} via local portal`);
+            
+            res.sendStatus(200);
+        } else {
+            res.status(404).send('Comment file not found');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 8. API: Git Push
+app.post('/api/push', async (req, res) => {
+    try {
+        await git.push();
         res.sendStatus(200);
     } catch (error) {
         console.error(error);
