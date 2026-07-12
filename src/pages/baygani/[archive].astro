@@ -143,9 +143,10 @@ function generateExcerpt(markdownBody: string) {
                                     <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">
                                         <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
                                         
-                                        <div class="comment-badge" style="font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+                                    <a href={`/delsharm/blog/${post.id}/#comments-section`} class="comment-badge" style="position: relative; z-index: 20; text-decoration: none; font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
                                             💬 {commentCounts[post.id] ? toFa(commentCounts[post.id]) : '۰'} دیدگاه
-                                        </div>
+                                    </a>
+
                                     </div>
                                 </div>
                         </div>

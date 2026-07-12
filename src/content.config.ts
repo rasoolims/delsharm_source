@@ -11,6 +11,7 @@ const blogCollection = defineCollection({
     date: z.date().or(z.string()), 
     jalaliDate: z.string().optional(),
     tags: z.array(z.string()).default([]),
+    pinned: z.boolean().optional(),
   }),
 });
 

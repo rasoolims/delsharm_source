@@ -90,6 +90,11 @@ function getValidUrl(url: string | undefined | null) {
             ))}
         </div>
 
+        {/* Private Message Notice */}
+        <div style="background: rgba(241, 196, 15, 0.15); border-right: 4px solid #f1c40f; padding: 15px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9em; color: var(--text-main);">
+          <strong>پیام خصوصی:</strong> برای ارسال پیام خصوصی، لطفاً مستقیماً به ایمیل من (<strong>rasoolims</strong> در جیمیل) پیام دهید.
+        </div>
+
         {/* Public Submission Form */}
         <form action="https://delsharm-comments.onrender.com/v2/entry/rasoolims/delsharm_source/main/comments" method="POST" class="comment-form">        
             {/* THIS IS THE CRITICAL FIX: fields[postSlug] */}
@@ -111,7 +116,7 @@ function getValidUrl(url: string | undefined | null) {
       .comment-thread { margin-bottom: 25px; }
       
       .comment-item { background: var(--accent-bg); padding: 20px; border-radius: 8px; border-right: 4px solid var(--border-color); }
-      .comment-item p { font-size: 0.95em; }
+      .comment-item p { font-size: 0.85em !important; line-height: 1.6 !important; }
       .admin-reply { margin-right: 30px; margin-top: 10px; border-right: 4px solid #3498db; background: var(--bg-container); border: 1px solid var(--border-light); }
       .admin-reply p { font-style: italic; }
       
