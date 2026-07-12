@@ -136,4 +136,21 @@ function toFa(num: number) {
         });
     </script>
 </body>
+
+<style is:global>
+    /* Target any link that is inside your post content */
+    article a {
+        color: #3498db;
+        text-decoration: none;
+        border-bottom: 2px solid #3498db; /* A stylish bottom border instead of a standard underline */
+        transition: all 0.2s ease;
+        font-weight: bold;
+    }
+
+    article a:hover {
+        color: #2980b9;
+        border-bottom-color: #2980b9;
+        background-color: rgba(52, 152, 219, 0.1); /* Adds a subtle highlight on hover */
+    }
+</style>
 </html>

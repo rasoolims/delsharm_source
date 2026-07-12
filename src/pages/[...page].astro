@@ -92,10 +92,14 @@ function toFa(num: number) {
     return num.toString().replace(/\d/g, x => farsiDigits[parseInt(x)]);
 }
 
-function extractImage(bodyStr: string) {
-    const imgRegex = /\x3Cimg[^\x3E]+src=["'](.*?)["']|!\[.*?\]\((.*?)\)/i;
-    const match = bodyStr.match(imgRegex);
-    return match ? (match[1] || match[2]) : null;
+// Helper to extract an image if heroImage isn't provided
+function extractImage(markdownBody: string) {
+    if (!markdownBody) return null;
+    const mdMatch = markdownBody.match(/!\[.*?\]\((.*?)\)/);
+    if (mdMatch && mdMatch[1]) return mdMatch[1];
+    const htmlMatch = markdownBody.match(/<img.*?src=["'](.*?)["']/);
+    if (htmlMatch && htmlMatch[1]) return htmlMatch[1];
+    return null;
 }
 
 function generateExcerpt(markdownBody: string) {
@@ -175,18 +179,20 @@ for(let i = 1; i <= totalPages; i++) {
                     
                     {page.data[0] && (
                         <div class="post-card">
-                            {/* --- NEW: PINNED BADGE FOR FEATURED POST --- */}
+                            {/* --- PINNED BADGE FOR FEATURED POST --- */}
                             {page.data[0].data.pinned && (
                                 <div style="position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; z-index: 15; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px;">
                                     📌 سنجاق‌شده
                                 </div>
                             )}
                             
-                            {extractImage(page.data[0].body) && (
+                            {/* --- HERO IMAGE FOR FEATURED POST --- */}
+                            {(page.data[0].data.heroImage || extractImage(page.data[0].body)) && (
                                 <a href={`/delsharm/blog/${page.data[0].id}/`}>
-                                    <img src={extractImage(page.data[0].body)} class="card-img" alt="تصویر پست" />
+                                    <img src={page.data[0].data.heroImage || extractImage(page.data[0].body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
+                            
                             <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
                                 <h2><a href={`/delsharm/blog/${page.data[0].id}/`}>{page.data[0].data.title}</a></h2>
                                 
@@ -198,7 +204,7 @@ for(let i = 1; i <= totalPages; i++) {
                                 
                                 <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">                                   
                                  <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
-                                                                                    
+                                                                                                                
                                    <a href={`/delsharm/blog/${page.data[0].id}/#comments-section`} class="comment-badge" style="position: relative; z-index: 20; text-decoration: none; font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
                                 💬 {commentCounts[page.data[0].id] ? toFa(commentCounts[page.data[0].id]) : '۰'} دیدگاه
                                 </a>
@@ -234,9 +240,10 @@ for(let i = 1; i <= totalPages; i++) {
 
                     {page.data.slice(1, 3).map((post) => (
                         <div class="post-card">
-                            {extractImage(post.body) && (
+                            {/* --- HERO IMAGE FOR POSTS 2 & 3 --- */}
+                            {(post.data.heroImage || extractImage(post.body)) && (
                                 <a href={`/delsharm/blog/${post.id}/`}>
-                                    <img src={extractImage(post.body)} class="card-img" alt="تصویر پست" />
+                                    <img src={post.data.heroImage || extractImage(post.body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
                             <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
@@ -286,9 +293,10 @@ for(let i = 1; i <= totalPages; i++) {
 
                     {page.data.slice(3).map((post) => (
                         <div class="post-card">
-                            {extractImage(post.body) && (
+                            {/* --- HERO IMAGE FOR THE REST OF THE POSTS --- */}
+                            {(post.data.heroImage || extractImage(post.body)) && (
                                 <a href={`/delsharm/blog/${post.id}/`}>
-                                    <img src={extractImage(post.body)} class="card-img" alt="تصویر پست" />
+                                    <img src={post.data.heroImage || extractImage(post.body)} class="card-img" alt="تصویر پست" />
                                 </a>
                             )}
                             <div class="card-content" style="display: flex; flex-direction: column; flex-grow: 1;">
@@ -300,7 +308,6 @@ for(let i = 1; i <= totalPages; i++) {
 
                                     <div class="excerpt-container" set:html={generateExcerpt(post.body)}></div>
                                     
-                                    <!-- Notice the margin-top: auto; added here! -->
                                     <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">
                                         <a href={`/delsharm/blog/${post.id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
                                         
