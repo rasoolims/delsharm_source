@@ -5,6 +5,7 @@ import { simpleGit } from 'simple-git';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import * as yaml from 'js-yaml';
+import multer from 'multer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -14,6 +15,25 @@ const PORT = 3000;
 // Paths
 const postsDir = path.join(__dirname, 'src', 'content', 'blog');
 const commentsDir = path.join(__dirname, 'src', 'content', 'comments');
+const imagesDir = path.join(__dirname, 'public', 'images');
+
+// Ensure the images directory exists
+if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+}
+
+// Configure Multer for Image Uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, imagesDir);
+    },
+    filename: function (req, file, cb) {
+        // Create a clean, unique filename so images don't overwrite each other
+        const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '-').toLowerCase();
+        cb(null, safeName);
+    }
+});
+const upload = multer({ storage: storage });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -71,10 +91,13 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="utf-8">
         <title>پنل مدیریت دلشرم</title>
+        
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        
         <style>
             body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f4f6f7; padding: 20px; color: #333; }
-            .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+            .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
             
             .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
             .header-bar h1 { margin: 0; }
@@ -95,17 +118,36 @@ app.get('/', (req, res) => {
             .btn-comments { background: #e67e22; margin-left: 5px; }
             .btn-cancel { background: #e74c3c; margin-right: 10px; }
             .btn-delete { background: #c0392b; font-size: 0.8em; padding: 5px 10px; }
+            .btn-toggle { background: #34495e; margin-bottom: 15px; }
             
-            /* Forms & Editor */
-            .form-group { margin-bottom: 20px; }
-            .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+            /* Form Grid */
+            .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+            .form-group { margin-bottom: 15px; }
+            .form-group.full-width { grid-column: span 2; }
+            .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
             .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 1em; box-sizing: border-box; }
             
-            .toolbar { display: flex; gap: 5px; margin-bottom: 5px; background: #ecf0f1; padding: 8px; border-radius: 8px 8px 0 0; border: 1px solid #ccc; border-bottom: none; flex-wrap: wrap; }
-            .toolbar button { background: white; color: #333; border: 1px solid #bdc3c7; padding: 5px 10px; font-size: 0.9em; font-weight: normal; border-radius: 4px; }
-            .toolbar button:hover { background: #e0e6ed; }
+            /* Quill & Code Editor Overrides */
+            .ql-toolbar { background: #ecf0f1; border-radius: 8px 8px 0 0; border-color: #ccc !important; direction: ltr; text-align: left; }
+            .ql-container { height: 450px !important; border-radius: 0 0 8px 8px; border-color: #ccc !important; font-family: 'Vazirmatn', inherit !important; font-size: 16px !important; }
+            .ql-editor { direction: rtl; text-align: right; }
             
-            textarea { width: 100%; height: 400px; padding: 15px; direction: ltr; font-family: monospace; border: 1px solid #ccc; border-radius: 0 0 8px 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; }
+            /* Styling for Links inside Editor */
+            .ql-editor a { color: #3498db; text-decoration: underline; cursor: pointer; }
+            
+            /* Custom RTL / LTR / Image URL Buttons */
+            .ql-toolbar button.ql-rtl_btn, 
+            .ql-toolbar button.ql-ltr_btn { width: 45px !important; }
+            
+            .ql-toolbar button.ql-rtl_btn::after { content: 'RTL'; font-weight: bold; font-family: Tahoma; font-size: 12px; }
+            .ql-toolbar button.ql-ltr_btn::after { content: 'LTR'; font-weight: bold; font-family: Tahoma; font-size: 12px; }
+            
+            .ql-toolbar button.ql-image_url { width: 85px !important; }
+            .ql-toolbar button.ql-image_url::after { content: '🔗 عکس URL'; font-weight: bold; font-family: Tahoma; font-size: 12px; }
+            
+            .ql-toolbar button.ql-active::after, .ql-toolbar button:hover::after { color: #06c; }
+
+            #raw-markdown { width: 100%; height: 450px; padding: 15px; direction: ltr; font-family: monospace; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; display: none; }
             
             /* Pagination */
             .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
@@ -113,9 +155,8 @@ app.get('/', (req, res) => {
             .page-btn.active { background: #3498db; color: white; }
             .page-ellipsis { color: #7f8c8d; font-weight: bold; padding: 0 5px; }
 
-            /* Comments Section */
-            .comment-card { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; position: relative; }
-            .comment-card h4 { margin: 0 0 10px 0; color: #2c3e50; }
+            /* Comments */
+            .comment-card { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; }
             .reply-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
             .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;}
             .comment-actions { display: flex; justify-content: space-between; align-items: flex-end; }
@@ -124,12 +165,11 @@ app.get('/', (req, res) => {
     <body>
         <div class="container">
             
-            <!-- DASHBOARD VIEW -->
             <div id="dashboard-view">
                 <div class="header-bar">
                     <h1>مدیریت پست‌ها</h1>
                     <div class="header-actions">
-                        <button class="btn-new" onclick="showNewPostForm()">➕ پست جدید</button>
+                        <button class="btn-new" onclick="showPostForm()">➕ پست جدید</button>
                         <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها (Git Pull)</button>
                     </div>
                 </div>
@@ -137,47 +177,50 @@ app.get('/', (req, res) => {
                 <div id="pagination-controls" class="pagination"></div>
             </div>
             
-            <!-- NEW POST FORM VIEW -->
-            <div id="new-post-section" style="display:none;">
-                <h2>ایجاد پست جدید</h2>
-                <div class="form-group">
-                    <label>عنوان پست:</label>
-                    <input type="text" id="new-title" placeholder="مثال: یادداشتی بر یک کتاب">
+            <div id="post-form-section" style="display:none;">
+                <h2 id="form-section-title">ایجاد پست جدید</h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>عنوان پست:</label>
+                        <input type="text" id="post-title" placeholder="مثال: یادداشتی بر یک کتاب">
+                    </div>
+                    <div class="form-group">
+                        <label>نام فایل انگلیسی (Slug):</label>
+                        <input type="text" id="post-slug" placeholder="مثال: book-review-2024" dir="ltr">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>تصویر اصلی (Hero Image):</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="post-hero-image" placeholder="مثال: /images/cover.jpg یا https://example.com/image.jpg" dir="ltr" style="flex-grow: 1;">
+                            <input type="file" id="hero-image-upload" accept="image/*" style="display: none;" onchange="uploadHeroImage(event)">
+                            <button type="button" onclick="document.getElementById('hero-image-upload').click()" style="background: #2ecc71; white-space: nowrap;">📤 آپلود عکس</button>
+                        </div>
+                        <small style="color: #7f8c8d; display: block; margin-top: 5px;">میتوانید آدرس عکس را تایپ کنید یا یک فایل را از سیستم خود آپلود کنید.</small>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>برچسب‌ها (Tags):</label>
+                        <input type="text" id="post-tags" placeholder="مثال: شعر، داستان, کتاب">
+                        <small style="color: #7f8c8d; display: block; margin-top: 5px;">با کاما انگلیسی (,) یا ویرگول فارسی (،) جدا کنید. فاصله‌های اضافی خودکار حذف می‌شوند.</small>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>نام فایل انگلیسی (برای لینک صفحه):</label>
-                    <input type="text" id="new-slug" placeholder="مثال: book-review-2024" dir="ltr">
-                    <small style="color: #7f8c8d;">بدون فاصله. در صورت وجود فاصله، به‌طور خودکار با خط تیره جایگزین می‌شود.</small>
+
+                <div class="form-group full-width">
+                    <label>محتوای پست:</label>
+                    <button class="btn-toggle" id="toggle-mode-btn" onclick="toggleEditorMode()">💻 نمایش سورس (Markdown/HTML)</button>
+                    
+                    <div id="quill-container">
+                        <div id="quill-editor"></div>
+                    </div>
+                    <textarea id="raw-markdown"></textarea>
                 </div>
-                <div style="margin-top: 20px;">
-                    <button onclick="startNewPost()">ادامه به ویرایشگر</button>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <button id="btn-save-post" onclick="savePostForm()">ذخیره و ارسال به گیت‌هاب</button>
                     <button class="btn-cancel" onclick="showDashboard()">لغو</button>
                 </div>
             </div>
 
-            <!-- EDITOR VIEW -->
-            <div id="editor-section" style="display:none;">
-                <h2 id="editing-title"></h2>
-                
-                <!-- Formatting Toolbar -->
-                <div class="toolbar">
-                    <button onclick="insertMarkdown('**', '**')" title="Bold"><b>B</b></button>
-                    <button onclick="insertMarkdown('*', '*')" title="Italic"><i>I</i></button>
-                    <button onclick="insertMarkdown('## ', '')" title="Heading 2">H2</button>
-                    <button onclick="insertMarkdown('### ', '')" title="Heading 3">H3</button>
-                    <button onclick="insertMarkdown('> ', '')" title="Quote">❞</button>
-                    <button onclick="insertMarkdown('[', '](url)')" title="Link">🔗 Link</button>
-                    <button onclick="insertMarkdown('![', '](image-url.jpg)')" title="Image">🖼️ Image</button>
-                    <button onclick="insertMarkdown('- ', '')" title="List">⚫ List</button>
-                </div>
-                
-                <textarea id="post-content"></textarea>
-                <br><br>
-                <button onclick="saveAndCommit()">ذخیره و ارسال به گیت‌هاب</button>
-                <button class="btn-cancel" onclick="showDashboard()">لغو</button>
-            </div>
-
-            <!-- COMMENTS VIEW -->
             <div id="comments-section" style="display:none;">
                 <h2 id="comments-title"></h2>
                 <button class="btn-cancel" onclick="showDashboard()" style="margin-bottom: 20px;">بازگشت به داشبورد</button>
@@ -186,27 +229,135 @@ app.get('/', (req, res) => {
 
         </div>
 
+        <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
         <script>
             const ALL_POSTS = ${JSON.stringify(postsData)};
-            
             let currentPage = 1;
             const postsPerPage = 20;
-            let currentFile = '';
+            
+            let quill;
+            let isCodeMode = false;
+            let currentOriginalFilename = ''; // Used to track if we are renaming an existing file
 
-            // --- HELPER: Convert English digits to Persian digits ---
+            // Convert to Persian Digits
             function toFa(num) {
                 const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
                 return num.toString().replace(/[0-9]/g, x => farsiDigits[x]);
             }
 
+            // --- IMAGE UPLOAD LOGIC ---
+            async function uploadHeroImage(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const btn = event.target.nextElementSibling;
+                const originalText = btn.innerText;
+                btn.innerText = 'در حال آپلود...';
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        document.getElementById('post-hero-image').value = data.url;
+                        alert('عکس با موفقیت آپلود شد!');
+                    } else {
+                        alert('خطا در آپلود عکس.');
+                    }
+                } catch (e) {
+                    alert('خطا در ارتباط با سرور.');
+                }
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
+                event.target.value = ''; // Reset file input
+            }
+
+            // --- QUILL INITIALIZATION ---
+            function initQuill() {
+                if(!quill) {
+                    const AlignStyle = Quill.import('attributors/style/align');
+                    const DirectionStyle = Quill.import('attributors/style/direction');
+                    Quill.register(AlignStyle, true);
+                    Quill.register(DirectionStyle, true);
+
+                    quill = new Quill('#quill-editor', {
+                        modules: {
+                            toolbar: {
+                                container: [
+                                    [{ 'header': [1, 2, 3, false] }],
+                                    ['bold', 'italic', 'underline', 'strike'],
+                                    [{ 'color': [] }, { 'background': [] }],
+                                    ['rtl_btn', 'ltr_btn'], // Our completely custom direction buttons
+                                    [{ 'align': [] }],
+                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                    ['link', 'image', 'image_url'], // Standard image (Upload) + Custom Image (URL)
+                                    ['clean']
+                                ],
+                                handlers: {
+                                    'rtl_btn': function() {
+                                        this.quill.format('direction', 'rtl');
+                                        this.quill.format('align', 'right');
+                                        updateDirectionButtons();
+                                    },
+                                    'ltr_btn': function() {
+                                        this.quill.format('direction', false);
+                                        this.quill.format('align', 'left');
+                                        updateDirectionButtons();
+                                    },
+                                    'image_url': function() {
+                                        const range = this.quill.getSelection() || { index: this.quill.getLength() };
+                                        const url = prompt('لطفاً آدرس تصویر (URL) را وارد کنید:');
+                                        if (url) {
+                                            this.quill.insertEmbed(range.index, 'image', url);
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        theme: 'snow'
+                    });
+
+                    // Update RTL/LTR buttons on cursor movement
+                    quill.on('editor-change', updateDirectionButtons);
+                }
+            }
+
+            // Visually highlight either the RTL or LTR button
+            function updateDirectionButtons() {
+                if (!quill) return;
+                const format = quill.getFormat();
+                const rtlBtn = document.querySelector('.ql-rtl_btn');
+                const ltrBtn = document.querySelector('.ql-ltr_btn');
+                
+                if (rtlBtn && ltrBtn) {
+                    if (format.direction === 'rtl') {
+                        rtlBtn.classList.add('ql-active');
+                        ltrBtn.classList.remove('ql-active');
+                    } else {
+                        rtlBtn.classList.remove('ql-active');
+                        ltrBtn.classList.add('ql-active');
+                    }
+                }
+            }
+
+            // --- NAVIGATION ---
             function showDashboard() {
                 document.getElementById('dashboard-view').style.display = 'block';
-                document.getElementById('editor-section').style.display = 'none';
+                document.getElementById('post-form-section').style.display = 'none';
                 document.getElementById('comments-section').style.display = 'none';
-                document.getElementById('new-post-section').style.display = 'none';
                 renderPostList();
             }
 
+            // --- RENDER POSTS ---
             function renderPostList() {
                 const start = (currentPage - 1) * postsPerPage;
                 const end = start + postsPerPage;
@@ -220,7 +371,7 @@ app.get('/', (req, res) => {
                         </div>
                         <div>
                             <button class="btn-comments" onclick="openComments('\${post.slug}', '\${post.title}')">نظرات</button>
-                            <button onclick="editPost('\${post.filename}')">ویرایش</button>
+                            <button onclick="showPostForm('\${post.filename}')">ویرایش</button>
                             <button class="btn-delete" style="margin-right: 5px;" onclick="deletePost('\${post.filename}', event)">🗑️ حذف</button>
                         </div>
                     </div>
@@ -233,135 +384,124 @@ app.get('/', (req, res) => {
             function renderPaginationControls() {
                 const totalPages = Math.ceil(ALL_POSTS.length / postsPerPage);
                 let html = '';
-                
-                if (totalPages <= 9) {
-                    for (let i = 1; i <= totalPages; i++) {
-                        html += \`<button class="page-btn \${i === currentPage ? 'active' : ''}" onclick="goToPage(\${i})">\${toFa(i)}</button>\`;
-                    }
-                } else {
-                    let pages = new Set();
-                    for(let i = 1; i <= 5; i++) pages.add(i);
-                    for(let i = totalPages - 2; i <= totalPages; i++) pages.add(i);
-                    if (currentPage > 1) pages.add(currentPage - 1);
-                    pages.add(currentPage);
-                    if (currentPage < totalPages) pages.add(currentPage + 1);
-                    
-                    let sortedPages = Array.from(pages).sort((a,b) => a - b).filter(p => p > 0 && p <= totalPages);
-                    
-                    let prev = 0;
-                    for (let p of sortedPages) {
-                        if (prev && p - prev > 1) {
-                            html += \`<span class="page-ellipsis">...</span>\`;
-                        }
-                        html += \`<button class="page-btn \${p === currentPage ? 'active' : ''}" onclick="goToPage(\${p})">\${toFa(p)}</button>\`;
-                        prev = p;
-                    }
+                for (let i = 1; i <= totalPages; i++) {
+                    html += \`<button class="page-btn \${i === currentPage ? 'active' : ''}" onclick="goToPage(\${i})">\${toFa(i)}</button>\`;
                 }
                 document.getElementById('pagination-controls').innerHTML = html;
             }
 
-            function goToPage(page) {
-                currentPage = page;
-                renderPostList();
-            }
+            function goToPage(page) { currentPage = page; renderPostList(); }
 
-            // --- EDITOR TOOLBAR ---
-            function insertMarkdown(prefix, suffix = '') {
-                const textarea = document.getElementById('post-content');
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const text = textarea.value;
-                const selectedText = text.substring(start, end);
+            // --- POST FORM LOGIC (SINGLE STAGE) ---
+            function showPostForm(filename = null) {
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('post-form-section').style.display = 'block';
                 
-                const replacement = prefix + selectedText + suffix;
-                textarea.value = text.substring(0, start) + replacement + text.substring(end);
+                initQuill();
                 
-                textarea.focus();
-                if (selectedText.length === 0) {
-                    textarea.selectionStart = textarea.selectionEnd = start + prefix.length;
+                if(isCodeMode) toggleEditorMode(); 
+                
+                if (filename) {
+                    document.getElementById('form-section-title').innerText = 'ویرایش پست: ' + filename;
+                    currentOriginalFilename = filename;
+                    
+                    fetch('/api/post/' + filename).then(r => r.json()).then(data => {
+                        document.getElementById('post-title').value = data.title;
+                        document.getElementById('post-slug').value = filename.replace('.md', '');
+                        document.getElementById('post-hero-image').value = data.heroImage || '';
+                        document.getElementById('post-tags').value = data.tags.join('، ');
+                        
+                        quill.root.innerHTML = data.body;
+                        document.getElementById('raw-markdown').value = data.body;
+                        setTimeout(updateDirectionButtons, 100); 
+                    });
                 } else {
-                    textarea.selectionStart = textarea.selectionEnd = start + replacement.length;
+                    document.getElementById('form-section-title').innerText = 'ایجاد پست جدید';
+                    currentOriginalFilename = ''; // New post
+                    
+                    document.getElementById('post-title').value = '';
+                    document.getElementById('post-slug').value = '';
+                    document.getElementById('post-hero-image').value = '';
+                    document.getElementById('post-tags').value = '';
+                    
+                    quill.root.innerHTML = '';
+                    document.getElementById('raw-markdown').value = '';
+                    setTimeout(updateDirectionButtons, 100);
                 }
             }
 
-            // --- NEW POST LOGIC ---
-            function showNewPostForm() {
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('new-post-section').style.display = 'block';
-                document.getElementById('new-title').value = '';
-                document.getElementById('new-slug').value = '';
+            function toggleEditorMode() {
+                const quillContainer = document.getElementById('quill-container');
+                const rawTextarea = document.getElementById('raw-markdown');
+                const btn = document.getElementById('toggle-mode-btn');
+                
+                isCodeMode = !isCodeMode;
+                
+                if (isCodeMode) {
+                    rawTextarea.value = quill.root.innerHTML;
+                    quillContainer.style.display = 'none';
+                    rawTextarea.style.display = 'block';
+                    btn.innerText = '👁️ نمایش ویرایشگر دیداری (WYSIWYG)';
+                } else {
+                    quill.root.innerHTML = rawTextarea.value;
+                    rawTextarea.style.display = 'none';
+                    quillContainer.style.display = 'block';
+                    btn.innerText = '💻 نمایش سورس (Markdown/HTML)';
+                }
             }
 
-            function startNewPost() {
-                const title = document.getElementById('new-title').value;
-                let slug = document.getElementById('new-slug').value;
+            async function savePostForm() {
+                const title = document.getElementById('post-title').value;
+                let slug = document.getElementById('post-slug').value;
+                const tagsInput = document.getElementById('post-tags').value;
+                const heroImage = document.getElementById('post-hero-image').value;
                 
                 if (!title || !slug) {
-                    alert('لطفاً هم عنوان و هم نام فایل را وارد کنید.');
+                    alert('لطفا عنوان پست و نام فایل (Slug) را وارد کنید.');
                     return;
                 }
 
                 slug = slug.trim().replace(/\\s+/g, '-').toLowerCase();
-                const filename = slug.endsWith('.md') ? slug : slug + '.md';
-                currentFile = filename;
+                const newFilename = slug.endsWith('.md') ? slug : slug + '.md';
                 
-                const dateISO = new Date().toISOString();
-                const template = \`---
-title: "\${title}"
-date: "\${dateISO}"
-jalaliDate: ""
-tags: []
-pinned: false
----
-
-متن پست خود را اینجا بنویسید...
-\`;
+                // Smart Tag Parsing
+                const tagsArray = tagsInput.split(/[,،]/).map(t => t.trim()).filter(t => t.length > 0);
                 
-                document.getElementById('new-post-section').style.display = 'none';
-                document.getElementById('editor-section').style.display = 'block';
-                document.getElementById('editing-title').innerText = 'ایجاد پست جدید: ' + filename;
-                document.getElementById('post-content').value = template;
-            }
-
-            async function editPost(filename) {
-                const res = await fetch('/api/post/' + filename);
-                const content = await res.text();
-                currentFile = filename;
+                const content = isCodeMode ? document.getElementById('raw-markdown').value : quill.root.innerHTML;
                 
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('editor-section').style.display = 'block';
-                document.getElementById('editing-title').innerText = 'در حال ویرایش: ' + filename;
-                document.getElementById('post-content').value = content;
-            }
-
-            async function saveAndCommit() {
-                const content = document.getElementById('post-content').value;
-                const btn = document.querySelector('button[onclick="saveAndCommit()"]');
+                const btn = document.querySelector('#btn-save-post');
                 btn.innerText = 'در حال ذخیره و ارسال...';
                 btn.disabled = true;
-                
-                const res = await fetch('/api/save', {
+
+                const res = await fetch('/api/save-post', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: currentFile, content: content })
+                    body: JSON.stringify({
+                        originalFilename: currentOriginalFilename,
+                        newFilename: newFilename,
+                        title: title,
+                        tags: tagsArray,
+                        heroImage: heroImage,
+                        content: content
+                    })
                 });
 
                 if(res.ok) {
-                    alert('با موفقیت ذخیره و به گیت‌هاب ارسال شد!');
+                    alert('پست با موفقیت ذخیره و به گیت‌هاب ارسال شد!');
                     location.reload();
                 } else {
-                    alert('خطا در ذخیره یا ارسال');
+                    alert('خطا در ذخیره پست');
                     btn.innerText = 'ذخیره و ارسال به گیت‌هاب';
                     btn.disabled = false;
                 }
             }
 
+            // --- DELETE POST ---
             async function deletePost(filename, event) {
-                if (!confirm('آیا از حذف این پست مطمئن هستید؟ این عملیات مستقیماً در گیت‌هاب اعمال شده و غیرقابل بازگشت است!')) return;
-                
+                if (!confirm('آیا از حذف این پست مطمئن هستید؟ غیرقابل بازگشت است!')) return;
                 const btn = event.target;
                 const originalText = btn.innerText;
-                btn.innerText = 'در حال حذف و ارسال...';
+                btn.innerText = 'در حال حذف...';
                 btn.disabled = true;
 
                 const res = await fetch('/api/delete-post', {
@@ -370,16 +510,11 @@ pinned: false
                     body: JSON.stringify({ filename: filename })
                 });
 
-                if (res.ok) {
-                    alert('پست با موفقیت حذف و به گیت‌هاب ارسال شد.');
-                    location.reload();
-                } else {
-                    alert('خطا در حذف پست');
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
+                if (res.ok) location.reload();
+                else { alert('خطا در حذف پست'); btn.innerText = originalText; btn.disabled = false; }
             }
 
+            // --- COMMENTS ---
             async function openComments(slug, title) {
                 document.getElementById('dashboard-view').style.display = 'none';
                 document.getElementById('comments-section').style.display = 'block';
@@ -397,40 +532,33 @@ pinned: false
                 let html = '';
                 comments.forEach(c => {
                     const existingReply = c.adminResponse ? c.adminResponse.message : '';
-                    const btnLabel = 'ثبت تغییرات و ارسال';
                     const jalaliDate = toFa(new Date(c.date).toLocaleDateString('fa-IR'));
 
                     html += \`
                     <div class="comment-card" id="comment-\${c.filename.replace('.yml', '')}">
                         <h4>\${c.name} (\${jalaliDate})</h4>
-                        
-                        <label style="font-size: 0.85em; color: #7f8c8d; font-weight: bold;">متن دیدگاه (قابل ویرایش):</label>
-                        <textarea id="msg-\${c.filename}" class="reply-textarea" style="background: #fff; height: 60px; margin-bottom: 15px;">\${c.message}</textarea>
-                        
+                        <textarea id="msg-\${c.filename}" class="reply-textarea" style="background: #fff; height: 60px;">\${c.message}</textarea>
                         <div class="reply-box">
-                            <label style="font-size: 0.85em; color: #7f8c8d; font-weight: bold;">پاسخ شما:</label>
-                            <textarea id="reply-\${c.filename}" class="reply-textarea" placeholder="پاسخ خود را اینجا بنویسید...">\${existingReply}</textarea><br>
+                            <label>پاسخ شما:</label>
+                            <textarea id="reply-\${c.filename}" class="reply-textarea" placeholder="پاسخ...">\${existingReply}</textarea><br>
                             <div class="comment-actions">
-                                <button onclick="updateCommentData('\${c.filename}', event)">\${btnLabel}</button>
-                                <button class="btn-delete" onclick="deleteComment('\${c.filename}', event)">🗑️ حذف دیدگاه</button>
+                                <button onclick="updateCommentData('\${c.filename}', event)">ثبت و ارسال</button>
+                                <button class="btn-delete" onclick="deleteComment('\${c.filename}', event)">🗑️ حذف</button>
                             </div>
                         </div>
                     </div>
                     \`;
                 });
-                
                 document.getElementById('comments-container').innerHTML = html;
             }
 
             async function updateCommentData(commentFilename, event) {
                 const userMsgText = document.getElementById('msg-' + commentFilename).value;
                 const replyText = document.getElementById('reply-' + commentFilename).value;
-                
-                if (!userMsgText.trim()) { alert('متن دیدگاه کاربر نمی‌تواند خالی باشد!'); return; }
+                if (!userMsgText.trim()) return;
                 
                 const btn = event.target;
-                const originalText = btn.innerText;
-                btn.innerText = 'در حال ثبت و ارسال...';
+                btn.innerText = 'در حال ارسال...';
                 btn.disabled = true;
 
                 const res = await fetch('/api/update-comment', {
@@ -439,23 +567,14 @@ pinned: false
                     body: JSON.stringify({ filename: commentFilename, reply: replyText, userMessage: userMsgText })
                 });
 
-                if(res.ok) {
-                    alert('تغییرات با موفقیت ثبت و به گیت‌هاب ارسال شد!');
-                    btn.innerText = 'ثبت و ارسال شد';
-                    btn.disabled = false;
-                } else {
-                    alert('خطا در ثبت تغییرات');
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
+                if(res.ok) { btn.innerText = 'ثبت شد'; btn.disabled = false; } 
+                else { alert('خطا'); btn.disabled = false; }
             }
 
             async function deleteComment(commentFilename, event) {
-                if (!confirm('آیا از حذف این دیدگاه مطمئن هستید؟ این عملیات مستقیماً در گیت‌هاب اعمال شده و غیرقابل بازگشت است!')) return;
-                
+                if (!confirm('مطمئن هستید؟')) return;
                 const btn = event.target;
-                const originalText = btn.innerText;
-                btn.innerText = 'در حال حذف و ارسال...';
+                btn.innerText = 'در حال حذف...';
                 btn.disabled = true;
 
                 const res = await fetch('/api/delete-comment', {
@@ -464,34 +583,21 @@ pinned: false
                     body: JSON.stringify({ filename: commentFilename })
                 });
 
-                if (res.ok) {
-                    alert('دیدگاه با موفقیت حذف و به گیت‌هاب ارسال شد.');
-                    btn.closest('.comment-card').remove();
-                } else {
-                    alert('خطا در حذف دیدگاه');
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
+                if (res.ok) btn.closest('.comment-card').remove();
+                else btn.disabled = false;
             }
 
             async function pullChanges() {
                 const btn = document.querySelector('.btn-pull');
                 const originalText = btn.innerText;
-                btn.innerText = 'در حال دریافت اطلاعات...';
+                btn.innerText = 'در حال دریافت...';
                 btn.disabled = true;
 
                 try {
                     const res = await fetch('/api/pull', { method: 'POST' });
-                    if(res.ok) {
-                        alert('تغییرات با موفقیت از سرور دریافت شد!');
-                        location.reload();
-                    } else {
-                        const errorMsg = await res.text();
-                        alert('خطا در دریافت اطلاعات: ' + errorMsg);
-                    }
-                } catch (e) {
-                    alert('خطا در ارتباط با سرور.');
-                }
+                    if(res.ok) location.reload();
+                    else alert('خطا: ' + await res.text());
+                } catch (e) { alert('خطا در ارتباط با سرور.'); }
                 
                 btn.innerText = originalText;
                 btn.disabled = false;
@@ -505,23 +611,87 @@ pinned: false
     res.send(html);
 });
 
-// 2. API: Get Post Content
+// 2. API: Image Upload Handler
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).send('هیچ عکسی ارسال نشده است.');
+        
+        const imagePath = `/images/${req.file.filename}`; // The exact URL Astro will use
+        
+        // Add the newly uploaded file to Git and Push it immediately
+        await git.add(req.file.path);
+        await git.commit(`Uploaded image: ${req.file.filename}`);
+        await git.push();
+        
+        res.json({ url: imagePath });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 3. API: Get JSON Post Data for Single Stage Form
 app.get('/api/post/:filename', (req, res) => {
     const filePath = path.join(postsDir, req.params.filename);
     const content = fs.readFileSync(filePath, 'utf-8');
-    res.send(content);
+    const parsed = matter(content);
+    
+    res.json({
+        title: parsed.data.title || '',
+        tags: parsed.data.tags || [],
+        heroImage: parsed.data.heroImage || '',
+        body: parsed.content || '' 
+    });
 });
 
-// 3. API: Save Post, Commit, and Auto-Push
-app.post('/api/save', async (req, res) => {
-    const { filename, content } = req.body;
-    const filePath = path.join(postsDir, filename);
+// 4. API: Save Post (Handles New, Updates, and Renames)
+app.post('/api/save-post', async (req, res) => {
+    const { originalFilename, newFilename, title, tags, heroImage, content } = req.body;
     
     try {
-        fs.writeFileSync(filePath, content, 'utf-8');
-        await git.add(filePath);
-        await git.commit(`Update post ${filename} via local portal`);
-        await git.push(); // AUTO PUSH
+        let dateISO = new Date().toISOString();
+        let pinned = false;
+        
+        // Preserve original Date and Pinned status if editing an existing file
+        if (originalFilename) {
+            const oldPath = path.join(postsDir, originalFilename);
+            if (fs.existsSync(oldPath)) {
+                const oldContent = fs.readFileSync(oldPath, 'utf-8');
+                const parsed = matter(oldContent);
+                if (parsed.data.date) dateISO = parsed.data.date;
+                if (parsed.data.pinned !== undefined) pinned = parsed.data.pinned;
+                
+                if (originalFilename !== newFilename) {
+                    fs.unlinkSync(oldPath);
+                    await git.rm(oldPath);
+                }
+            }
+        }
+        
+        // Construct the new Frontmatter file dynamically
+        const newPath = path.join(postsDir, newFilename);
+        
+        let mdContent = `---
+title: "${title}"
+date: "${dateISO}"
+jalaliDate: ""
+`;
+        if (heroImage && heroImage.trim() !== '') {
+            mdContent += `heroImage: "${heroImage.trim()}"\n`;
+        }
+
+        mdContent += `tags: ${JSON.stringify(tags)}
+pinned: ${pinned}
+---
+
+${content}
+`;
+        
+        fs.writeFileSync(newPath, mdContent, 'utf-8');
+        await git.add(newPath);
+        await git.commit(`Update post ${newFilename} via local portal`);
+        await git.push(); 
+        
         res.sendStatus(200);
     } catch (error) {
         console.error(error);
@@ -529,28 +699,22 @@ app.post('/api/save', async (req, res) => {
     }
 });
 
-// 4. API: Delete Post, Commit, and Auto-Push
+// 5. API: Delete Post
 app.post('/api/delete-post', async (req, res) => {
     const { filename } = req.body;
     const filePath = path.join(postsDir, filename);
-    
     try {
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
             await git.add(filePath);
             await git.commit(`Deleted post ${filename} via local portal`);
-            await git.push(); // AUTO PUSH
+            await git.push();
             res.sendStatus(200);
-        } else {
-            res.status(404).send('Post file not found');
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+        } else res.status(404).send('Not found');
+    } catch (error) { res.status(500).send(error.message); }
 });
 
-// 5. API: Get Comments for a specific Slug
+// 6. API: Comments List
 app.get('/api/comments/:slug', (req, res) => {
     const slug = req.params.slug;
     const results = [];
@@ -560,82 +724,56 @@ app.get('/api/comments/:slug', (req, res) => {
             try {
                 const content = fs.readFileSync(path.join(commentsDir, file), 'utf8');
                 const parsed = yaml.load(content);
-                if(parsed.postSlug === slug) {
-                    results.push({ filename: file, ...parsed });
-                }
-            } catch (e) {
-                console.error(`Error reading ${file}`, e);
-            }
+                if(parsed.postSlug === slug) results.push({ filename: file, ...parsed });
+            } catch (e) {}
         }
     }
     results.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     res.json(results);
 });
 
-// 6. API: Update Comment (Admin Reply + Edit User Message), Commit, and Auto-Push
+// 7. API: Update Comment
 app.post('/api/update-comment', async (req, res) => {
     const { filename, reply, userMessage } = req.body;
     const filepath = path.join(commentsDir, filename);
-    
     try {
-        const content = fs.readFileSync(filepath, 'utf8');
-        const parsed = yaml.load(content);
-        
-        // Save the moderated/edited user message
+        const parsed = yaml.load(fs.readFileSync(filepath, 'utf8'));
         parsed.message = userMessage;
         
-        // Handle the admin response
         if (reply && reply.trim() !== '') {
             parsed.adminResponse = {
                 date: parsed.adminResponse ? parsed.adminResponse.date : new Date().toISOString(),
                 message: reply
             };
-        } else {
-            // Remove the reply entirely if the box is empty
-            delete parsed.adminResponse; 
-        }
+        } else { delete parsed.adminResponse; }
         
         fs.writeFileSync(filepath, yaml.dump(parsed), 'utf8');
         await git.add(filepath);
-        await git.commit(`Moderated comment/reply for ${filename} via local portal`);
-        await git.push(); // AUTO PUSH
+        await git.commit(`Moderated comment ${filename}`);
+        await git.push();
         res.sendStatus(200);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+    } catch (error) { res.status(500).send(error.message); }
 });
 
-// 7. API: Delete a Comment, Commit, and Auto-Push
+// 8. API: Delete Comment
 app.post('/api/delete-comment', async (req, res) => {
     const { filename } = req.body;
     const filepath = path.join(commentsDir, filename);
-    
     try {
         if (fs.existsSync(filepath)) {
             fs.unlinkSync(filepath);
             await git.add(filepath);
-            await git.commit(`Deleted comment ${filename} via local portal`);
-            await git.push(); // AUTO PUSH
+            await git.commit(`Deleted comment ${filename}`);
+            await git.push();
             res.sendStatus(200);
-        } else {
-            res.status(404).send('Comment file not found');
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+        } else res.status(404).send('Not found');
+    } catch (error) { res.status(500).send(error.message); }
 });
 
-// 8. API: Git Pull
+// 9. API: Git Pull
 app.post('/api/pull', async (req, res) => {
-    try {
-        await git.pull();
-        res.sendStatus(200);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+    try { await git.pull(); res.sendStatus(200); } 
+    catch (error) { res.status(500).send(error.message); }
 });
 
 app.listen(PORT, () => {
