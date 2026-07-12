@@ -272,7 +272,7 @@ a:hover { color: #1abc9c; }
 @media (max-width: 768px) {
     /* 1. Fix: Make page text wider on mobile by reducing extreme paddings */
     body {
-        padding: 15px 10px; /* Reduced from 40px 20px */
+        padding: 15px 10px 80px 10px; /* Added 80px bottom padding so mobile bottom bars don't cover content */
     }
 
     .single-post-container {
@@ -292,6 +292,18 @@ a:hover { color: #1abc9c; }
         top: 0;
         left: 0;
         margin-bottom: 15px; /* Centers it nicely above the title */
+    }
+
+    /* 3. Fix: Force the page navigator to wrap and stack on small screens so it doesn't overflow */
+    .pagination {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .page-numbers {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     /* Just in case you have a separate nav-toggle button somewhere */
