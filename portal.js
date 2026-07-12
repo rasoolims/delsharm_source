@@ -28,7 +28,6 @@ const storage = multer.diskStorage({
         cb(null, imagesDir);
     },
     filename: function (req, file, cb) {
-        // Create a clean, unique filename so images don't overwrite each other
         const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '-').toLowerCase();
         cb(null, safeName);
     }
@@ -68,7 +67,6 @@ app.get('/', (req, res) => {
     
     let postsData = [];
 
-    // Parse each file to extract Title, Date, and Slug
     for (const file of files) {
         const content = fs.readFileSync(path.join(postsDir, file), 'utf-8');
         const parsed = matter(content);
@@ -83,7 +81,6 @@ app.get('/', (req, res) => {
         });
     }
 
-    // Sort posts by date (Reverse Chronological: Newest First)
     postsData.sort((a, b) => b.date - a.date);
 
     const html = `
@@ -172,9 +169,10 @@ app.get('/', (req, res) => {
             body.dark-mode .ql-fill { fill: #e0e0e0; }
 
             textarea { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); }
-            #raw-markdown, #about-raw-content { width: 100%; height: 450px; padding: 15px; direction: ltr; font-family: monospace; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; }
-            #raw-markdown { display: none; }
+            #raw-markdown { width: 100%; height: 450px; padding: 15px; direction: ltr; font-family: monospace; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; display: none; }
             
+            #about-raw-content { width: 100%; height: 450px; padding: 15px; direction: ltr; font-family: monospace; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; display: block; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); }
+
             /* Pagination */
             .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
             .page-btn { background: var(--meta-bg); color: var(--text-main); min-width: 35px; padding: 8px 12px; }
@@ -189,6 +187,7 @@ app.get('/', (req, res) => {
     <body>
         <div class="container">
             
+            <!-- DASHBOARD VIEW -->
             <div id="dashboard-view">
                 <div class="header-bar">
                     <h1>
@@ -205,10 +204,11 @@ app.get('/', (req, res) => {
                 <div id="pagination-controls" class="pagination"></div>
             </div>
             
+            <!-- ABOUT PAGE EDITOR VIEW (Safe Raw Mode) -->
             <div id="about-form-section" style="display:none;">
                 <h2>ویرایش صفحه درباره من</h2>
                 <div style="background: rgba(241, 196, 15, 0.15); padding:10px; margin-bottom:15px; border-radius:5px; color:#d35400; border-right: 4px solid #f1c40f; font-size:0.9em;">
-                    توجه: این بخش کدهای اصلی صفحه درباره من (Astro یا Markdown) را ویرایش می‌کند. ویرایشگر دیداری غیرفعال است تا ساختار صفحه به هم نریزد.
+                    <strong>توجه:</strong> این بخش مستقیماً کدهای فایل ساختاری (Astro) را ویرایش می‌کند. ویرایشگر دیداری برای این صفحه غیرفعال است تا کدهای قالب‌بندی سایت شما از بین نروند.
                 </div>
                 <div class="form-group full-width">
                     <textarea id="about-raw-content" spellcheck="false"></textarea>
@@ -219,6 +219,7 @@ app.get('/', (req, res) => {
                 </div>
             </div>
 
+            <!-- SINGLE STAGE POST FORM -->
             <div id="post-form-section" style="display:none;">
                 <h2 id="form-section-title">ایجاد پست جدید</h2>
                 
@@ -263,6 +264,7 @@ app.get('/', (req, res) => {
                 </div>
             </div>
 
+            <!-- COMMENTS VIEW -->
             <div id="comments-section" style="display:none;">
                 <h2 id="comments-title"></h2>
                 <button class="btn-cancel" onclick="showDashboard()" style="margin-bottom: 20px;">بازگشت به داشبورد</button>
@@ -295,14 +297,14 @@ app.get('/', (req, res) => {
             let quill;
             let isCodeMode = false;
             let currentOriginalFilename = ''; 
-            let activeAboutFilepath = ''; // Stores the path of the specific About file we are editing
+            let activeAboutFilepath = ''; 
 
             function toFa(num) {
                 const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
                 return num.toString().replace(/[0-9]/g, x => farsiDigits[x]);
             }
 
-            // --- ABOUT PAGE LOGIC ---
+            // --- ABOUT PAGE LOGIC (Safe Mode) ---
             async function editAboutPage() {
                 const res = await fetch('/api/about');
                 if (!res.ok) {
@@ -741,9 +743,8 @@ app.get('/api/post/:filename', (req, res) => {
     });
 });
 
-// 4. API: Fetch About Page intelligently
+// 4. API: Fetch About Page Safely
 app.get('/api/about', (req, res) => {
-    // Astro projects usually store 'About' in one of these paths
     const possiblePaths = [
         path.join('src', 'pages', 'about.astro'),
         path.join('src', 'pages', 'about.md'),
@@ -761,7 +762,7 @@ app.get('/api/about', (req, res) => {
     res.status(404).send('About page not found');
 });
 
-// 5. API: Save About Page dynamically
+// 5. API: Save About Page Safely
 app.post('/api/save-about', async (req, res) => {
     const { filepath, content } = req.body;
     try {
