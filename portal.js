@@ -96,18 +96,44 @@ app.get('/', (req, res) => {
         <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
         
         <style>
-            body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f4f6f7; padding: 20px; color: #333; }
-            .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+            /* --- CSS VARIABLES FOR DARK/LIGHT MODE --- */
+            :root {
+                --bg-body: #f4f6f7;
+                --bg-container: #ffffff;
+                --text-main: #333333;
+                --text-muted: #7f8c8d;
+                --border-color: #eeeeee;
+                --input-bg: #ffffff;
+                --hover-bg: #f9f9f9;
+                --meta-bg: #ecf0f1;
+            }
             
-            .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
-            .header-bar h1 { margin: 0; }
-            .header-actions { display: flex; gap: 10px; }
+            body.dark-mode {
+                --bg-body: #121212;
+                --bg-container: #1e1e1e;
+                --text-main: #e0e0e0;
+                --text-muted: #aaaaaa;
+                --border-color: #333333;
+                --input-bg: #2d2d2d;
+                --hover-bg: #252525;
+                --meta-bg: #333333;
+            }
+
+            body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: var(--bg-body); padding: 20px; color: var(--text-main); transition: all 0.3s ease; }
+            .container { max-width: 1000px; margin: auto; background: var(--bg-container); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; }
             
-            .post-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid #eee; transition: background 0.2s; }
-            .post-item:hover { background: #f9f9f9; }
+            .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); }
+            .header-bar h1 { margin: 0; display: flex; align-items: center; gap: 15px; }
+            .header-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+            
+            #theme-toggle { background: transparent; color: var(--text-main); font-size: 1.5em; cursor: pointer; padding: 0; margin: 0; box-shadow: none; border: none; }
+            #theme-toggle:hover { opacity: 0.7; }
+
+            .post-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
+            .post-item:hover { background: var(--hover-bg); }
             .post-info { display: flex; flex-direction: column; gap: 5px; }
             
-            .meta-tag { font-size: 0.85em; color: #7f8c8d; background: #ecf0f1; padding: 3px 8px; border-radius: 10px; display: inline-block; width: fit-content; }
+            .meta-tag { font-size: 0.85em; color: var(--text-muted); background: var(--meta-bg); padding: 3px 8px; border-radius: 10px; display: inline-block; width: fit-content; }
             
             button { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: background 0.2s; }
             button:hover:not(:disabled) { opacity: 0.9; }
@@ -115,6 +141,7 @@ app.get('/', (req, res) => {
             
             .btn-pull { background: #27ae60; }
             .btn-new { background: #9b59b6; }
+            .btn-about { background: #8e44ad; }
             .btn-comments { background: #e67e22; margin-left: 5px; }
             .btn-cancel { background: #e74c3c; margin-right: 10px; }
             .btn-delete { background: #c0392b; font-size: 0.8em; padding: 5px 10px; }
@@ -124,42 +151,39 @@ app.get('/', (req, res) => {
             .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
             .form-group { margin-bottom: 15px; }
             .form-group.full-width { grid-column: span 2; }
-            .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
-            .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 1em; box-sizing: border-box; }
-            
+            .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-main); }
+            .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 1em; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); }
+            .form-group small { color: var(--text-muted) !important; }
+
             /* Quill & Code Editor Overrides */
-            .ql-toolbar { background: #ecf0f1; border-radius: 8px 8px 0 0; border-color: #ccc !important; direction: ltr; text-align: left; }
-            .ql-container { height: 450px !important; border-radius: 0 0 8px 8px; border-color: #ccc !important; font-family: 'Vazirmatn', inherit !important; font-size: 16px !important; }
-            .ql-editor { direction: rtl; text-align: right; }
-            
-            /* Styling for Links inside Editor */
+            .ql-toolbar { background: var(--meta-bg); border-radius: 8px 8px 0 0; border-color: var(--border-color) !important; direction: ltr; text-align: left; }
+            .ql-container { background: var(--input-bg); height: 450px !important; border-radius: 0 0 8px 8px; border-color: var(--border-color) !important; font-family: 'Vazirmatn', inherit !important; font-size: 16px !important; }
+            .ql-editor { direction: rtl; text-align: right; color: var(--text-main); }
             .ql-editor a { color: #3498db; text-decoration: underline; cursor: pointer; }
             
-            /* Custom RTL / LTR / Image URL Buttons */
-            .ql-toolbar button.ql-rtl_btn, 
-            .ql-toolbar button.ql-ltr_btn { width: 45px !important; }
-            
+            .ql-toolbar button.ql-rtl_btn, .ql-toolbar button.ql-ltr_btn { width: 45px !important; color: var(--text-main); }
             .ql-toolbar button.ql-rtl_btn::after { content: 'RTL'; font-weight: bold; font-family: Tahoma; font-size: 12px; }
             .ql-toolbar button.ql-ltr_btn::after { content: 'LTR'; font-weight: bold; font-family: Tahoma; font-size: 12px; }
-            
-            .ql-toolbar button.ql-image_url { width: 85px !important; }
+            .ql-toolbar button.ql-image_url { width: 85px !important; color: var(--text-main); }
             .ql-toolbar button.ql-image_url::after { content: '🔗 عکس URL'; font-weight: bold; font-family: Tahoma; font-size: 12px; }
             
-            .ql-toolbar button.ql-active::after, .ql-toolbar button:hover::after { color: #06c; }
+            /* SVG icons color for dark mode in Quill */
+            body.dark-mode .ql-stroke { stroke: #e0e0e0; }
+            body.dark-mode .ql-fill { fill: #e0e0e0; }
 
-            #raw-markdown { width: 100%; height: 450px; padding: 15px; direction: ltr; font-family: monospace; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; display: none; }
+            textarea { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); }
+            #raw-markdown, #about-raw-content { width: 100%; height: 450px; padding: 15px; direction: ltr; font-family: monospace; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; }
+            #raw-markdown { display: none; }
             
             /* Pagination */
             .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
-            .page-btn { background: #ecf0f1; color: #333; min-width: 35px; padding: 8px 12px; }
+            .page-btn { background: var(--meta-bg); color: var(--text-main); min-width: 35px; padding: 8px 12px; }
             .page-btn.active { background: #3498db; color: white; }
-            .page-ellipsis { color: #7f8c8d; font-weight: bold; padding: 0 5px; }
-
+            
             /* Comments */
-            .comment-card { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; }
-            .reply-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
-            .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;}
-            .comment-actions { display: flex; justify-content: space-between; align-items: flex-end; }
+            .comment-card { background: var(--hover-bg); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 15px; }
+            .reply-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
+            .reply-textarea { height: 80px; direction: rtl; font-family: inherit; margin-bottom: 10px; width: 100%; padding: 10px; border-radius: 6px; box-sizing: border-box;}
         </style>
     </head>
     <body>
@@ -167,16 +191,34 @@ app.get('/', (req, res) => {
             
             <div id="dashboard-view">
                 <div class="header-bar">
-                    <h1>مدیریت پست‌ها</h1>
+                    <h1>
+                        مدیریت پست‌ها
+                        <button id="theme-toggle" onclick="toggleTheme()" title="تغییر پوسته">🌙</button>
+                    </h1>
                     <div class="header-actions">
                         <button class="btn-new" onclick="showPostForm()">➕ پست جدید</button>
-                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها (Git Pull)</button>
+                        <button class="btn-about" onclick="editAboutPage()">👤 ویرایش درباره من</button>
+                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها</button>
                     </div>
                 </div>
                 <div id="post-list"></div>
                 <div id="pagination-controls" class="pagination"></div>
             </div>
             
+            <div id="about-form-section" style="display:none;">
+                <h2>ویرایش صفحه درباره من</h2>
+                <div style="background: rgba(241, 196, 15, 0.15); padding:10px; margin-bottom:15px; border-radius:5px; color:#d35400; border-right: 4px solid #f1c40f; font-size:0.9em;">
+                    توجه: این بخش کدهای اصلی صفحه درباره من (Astro یا Markdown) را ویرایش می‌کند. ویرایشگر دیداری غیرفعال است تا ساختار صفحه به هم نریزد.
+                </div>
+                <div class="form-group full-width">
+                    <textarea id="about-raw-content" spellcheck="false"></textarea>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <button id="btn-save-about" onclick="saveAboutForm()">ذخیره و ارسال تغییرات</button>
+                    <button class="btn-cancel" onclick="showDashboard()">لغو</button>
+                </div>
+            </div>
+
             <div id="post-form-section" style="display:none;">
                 <h2 id="form-section-title">ایجاد پست جدید</h2>
                 
@@ -196,12 +238,12 @@ app.get('/', (req, res) => {
                             <input type="file" id="hero-image-upload" accept="image/*" style="display: none;" onchange="uploadHeroImage(event)">
                             <button type="button" onclick="document.getElementById('hero-image-upload').click()" style="background: #2ecc71; white-space: nowrap;">📤 آپلود عکس</button>
                         </div>
-                        <small style="color: #7f8c8d; display: block; margin-top: 5px;">میتوانید آدرس عکس را تایپ کنید یا یک فایل را از سیستم خود آپلود کنید.</small>
+                        <small>میتوانید آدرس عکس را تایپ کنید یا یک فایل را از سیستم خود آپلود کنید.</small>
                     </div>
                     <div class="form-group full-width">
                         <label>برچسب‌ها (Tags):</label>
                         <input type="text" id="post-tags" placeholder="مثال: شعر، داستان, کتاب">
-                        <small style="color: #7f8c8d; display: block; margin-top: 5px;">با کاما انگلیسی (,) یا ویرگول فارسی (،) جدا کنید. فاصله‌های اضافی خودکار حذف می‌شوند.</small>
+                        <small>با کاما انگلیسی (,) یا ویرگول فارسی (،) جدا کنید. فاصله‌های اضافی خودکار حذف می‌شوند.</small>
                     </div>
                 </div>
 
@@ -212,10 +254,10 @@ app.get('/', (req, res) => {
                     <div id="quill-container">
                         <div id="quill-editor"></div>
                     </div>
-                    <textarea id="raw-markdown"></textarea>
+                    <textarea id="raw-markdown" spellcheck="false"></textarea>
                 </div>
                 
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                     <button id="btn-save-post" onclick="savePostForm()">ذخیره و ارسال به گیت‌هاب</button>
                     <button class="btn-cancel" onclick="showDashboard()">لغو</button>
                 </div>
@@ -232,18 +274,79 @@ app.get('/', (req, res) => {
         <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
         <script>
+            // --- THEME TOGGLE LOGIC ---
+            const themeBtn = document.getElementById('theme-toggle');
+            const savedTheme = localStorage.getItem('portal-theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeBtn.innerText = '☀️';
+            }
+
+            function toggleTheme() {
+                const isDark = document.body.classList.toggle('dark-mode');
+                themeBtn.innerText = isDark ? '☀️' : '🌙';
+                localStorage.setItem('portal-theme', isDark ? 'dark' : 'light');
+            }
+
             const ALL_POSTS = ${JSON.stringify(postsData)};
             let currentPage = 1;
             const postsPerPage = 20;
             
             let quill;
             let isCodeMode = false;
-            let currentOriginalFilename = ''; // Used to track if we are renaming an existing file
+            let currentOriginalFilename = ''; 
+            let activeAboutFilepath = ''; // Stores the path of the specific About file we are editing
 
-            // Convert to Persian Digits
             function toFa(num) {
                 const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
                 return num.toString().replace(/[0-9]/g, x => farsiDigits[x]);
+            }
+
+            // --- ABOUT PAGE LOGIC ---
+            async function editAboutPage() {
+                const res = await fetch('/api/about');
+                if (!res.ok) {
+                    alert('صفحه درباره من (about.astro یا about.md) یافت نشد.');
+                    return;
+                }
+                const data = await res.json();
+                activeAboutFilepath = data.filepath;
+                
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('post-form-section').style.display = 'none';
+                document.getElementById('comments-section').style.display = 'none';
+                document.getElementById('about-form-section').style.display = 'block';
+                
+                document.getElementById('about-raw-content').value = data.content;
+            }
+
+            async function saveAboutForm() {
+                const content = document.getElementById('about-raw-content').value;
+                const btn = document.getElementById('btn-save-about');
+                const originalText = btn.innerText;
+                
+                btn.innerText = 'در حال ذخیره و ارسال...';
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/save-about', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filepath: activeAboutFilepath, content: content })
+                    });
+
+                    if (res.ok) {
+                        alert('تغییرات درباره من با موفقیت به گیت‌هاب ارسال شد!');
+                        showDashboard();
+                    } else {
+                        alert('خطا در ذخیره اطلاعات');
+                    }
+                } catch (e) {
+                    alert('خطا در ارتباط با سرور.');
+                }
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
 
             // --- IMAGE UPLOAD LOGIC ---
@@ -278,7 +381,7 @@ app.get('/', (req, res) => {
                 
                 btn.innerText = originalText;
                 btn.disabled = false;
-                event.target.value = ''; // Reset file input
+                event.target.value = ''; 
             }
 
             // --- QUILL INITIALIZATION ---
@@ -296,10 +399,10 @@ app.get('/', (req, res) => {
                                     [{ 'header': [1, 2, 3, false] }],
                                     ['bold', 'italic', 'underline', 'strike'],
                                     [{ 'color': [] }, { 'background': [] }],
-                                    ['rtl_btn', 'ltr_btn'], // Our completely custom direction buttons
+                                    ['rtl_btn', 'ltr_btn'], 
                                     [{ 'align': [] }],
                                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                    ['link', 'image', 'image_url'], // Standard image (Upload) + Custom Image (URL)
+                                    ['link', 'image', 'image_url'], 
                                     ['clean']
                                 ],
                                 handlers: {
@@ -326,12 +429,10 @@ app.get('/', (req, res) => {
                         theme: 'snow'
                     });
 
-                    // Update RTL/LTR buttons on cursor movement
                     quill.on('editor-change', updateDirectionButtons);
                 }
             }
 
-            // Visually highlight either the RTL or LTR button
             function updateDirectionButtons() {
                 if (!quill) return;
                 const format = quill.getFormat();
@@ -354,6 +455,7 @@ app.get('/', (req, res) => {
                 document.getElementById('dashboard-view').style.display = 'block';
                 document.getElementById('post-form-section').style.display = 'none';
                 document.getElementById('comments-section').style.display = 'none';
+                document.getElementById('about-form-section').style.display = 'none';
                 renderPostList();
             }
 
@@ -398,7 +500,6 @@ app.get('/', (req, res) => {
                 document.getElementById('post-form-section').style.display = 'block';
                 
                 initQuill();
-                
                 if(isCodeMode) toggleEditorMode(); 
                 
                 if (filename) {
@@ -417,7 +518,7 @@ app.get('/', (req, res) => {
                     });
                 } else {
                     document.getElementById('form-section-title').innerText = 'ایجاد پست جدید';
-                    currentOriginalFilename = ''; // New post
+                    currentOriginalFilename = ''; 
                     
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-slug').value = '';
@@ -464,9 +565,7 @@ app.get('/', (req, res) => {
                 slug = slug.trim().replace(/\\s+/g, '-').toLowerCase();
                 const newFilename = slug.endsWith('.md') ? slug : slug + '.md';
                 
-                // Smart Tag Parsing
                 const tagsArray = tagsInput.split(/[,،]/).map(t => t.trim()).filter(t => t.length > 0);
-                
                 const content = isCodeMode ? document.getElementById('raw-markdown').value : quill.root.innerHTML;
                 
                 const btn = document.querySelector('#btn-save-post');
@@ -496,7 +595,6 @@ app.get('/', (req, res) => {
                 }
             }
 
-            // --- DELETE POST ---
             async function deletePost(filename, event) {
                 if (!confirm('آیا از حذف این پست مطمئن هستید؟ غیرقابل بازگشت است!')) return;
                 const btn = event.target;
@@ -537,7 +635,7 @@ app.get('/', (req, res) => {
                     html += \`
                     <div class="comment-card" id="comment-\${c.filename.replace('.yml', '')}">
                         <h4>\${c.name} (\${jalaliDate})</h4>
-                        <textarea id="msg-\${c.filename}" class="reply-textarea" style="background: #fff; height: 60px;">\${c.message}</textarea>
+                        <textarea id="msg-\${c.filename}" class="reply-textarea">\${c.message}</textarea>
                         <div class="reply-box">
                             <label>پاسخ شما:</label>
                             <textarea id="reply-\${c.filename}" class="reply-textarea" placeholder="پاسخ...">\${existingReply}</textarea><br>
@@ -616,9 +714,8 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).send('هیچ عکسی ارسال نشده است.');
         
-        const imagePath = `/images/${req.file.filename}`; // The exact URL Astro will use
+        const imagePath = `/images/${req.file.filename}`;
         
-        // Add the newly uploaded file to Git and Push it immediately
         await git.add(req.file.path);
         await git.commit(`Uploaded image: ${req.file.filename}`);
         await git.push();
@@ -644,7 +741,43 @@ app.get('/api/post/:filename', (req, res) => {
     });
 });
 
-// 4. API: Save Post (Handles New, Updates, and Renames)
+// 4. API: Fetch About Page intelligently
+app.get('/api/about', (req, res) => {
+    // Astro projects usually store 'About' in one of these paths
+    const possiblePaths = [
+        path.join('src', 'pages', 'about.astro'),
+        path.join('src', 'pages', 'about.md'),
+        path.join('src', 'pages', 'about', 'index.astro')
+    ];
+
+    for (let p of possiblePaths) {
+        const fullPath = path.join(__dirname, p);
+        if (fs.existsSync(fullPath)) {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            return res.json({ content: content, filepath: p });
+        }
+    }
+    
+    res.status(404).send('About page not found');
+});
+
+// 5. API: Save About Page dynamically
+app.post('/api/save-about', async (req, res) => {
+    const { filepath, content } = req.body;
+    try {
+        const fullPath = path.join(__dirname, filepath);
+        fs.writeFileSync(fullPath, content, 'utf8');
+        await git.add(fullPath);
+        await git.commit(`Updated About page via local portal`);
+        await git.push();
+        res.sendStatus(200);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 6. API: Save Post (Handles New, Updates, and Renames)
 app.post('/api/save-post', async (req, res) => {
     const { originalFilename, newFilename, title, tags, heroImage, content } = req.body;
     
@@ -652,7 +785,6 @@ app.post('/api/save-post', async (req, res) => {
         let dateISO = new Date().toISOString();
         let pinned = false;
         
-        // Preserve original Date and Pinned status if editing an existing file
         if (originalFilename) {
             const oldPath = path.join(postsDir, originalFilename);
             if (fs.existsSync(oldPath)) {
@@ -668,7 +800,6 @@ app.post('/api/save-post', async (req, res) => {
             }
         }
         
-        // Construct the new Frontmatter file dynamically
         const newPath = path.join(postsDir, newFilename);
         
         let mdContent = `---
@@ -699,7 +830,7 @@ ${content}
     }
 });
 
-// 5. API: Delete Post
+// 7. API: Delete Post
 app.post('/api/delete-post', async (req, res) => {
     const { filename } = req.body;
     const filePath = path.join(postsDir, filename);
@@ -714,7 +845,7 @@ app.post('/api/delete-post', async (req, res) => {
     } catch (error) { res.status(500).send(error.message); }
 });
 
-// 6. API: Comments List
+// 8. API: Comments List
 app.get('/api/comments/:slug', (req, res) => {
     const slug = req.params.slug;
     const results = [];
@@ -732,7 +863,7 @@ app.get('/api/comments/:slug', (req, res) => {
     res.json(results);
 });
 
-// 7. API: Update Comment
+// 9. API: Update Comment
 app.post('/api/update-comment', async (req, res) => {
     const { filename, reply, userMessage } = req.body;
     const filepath = path.join(commentsDir, filename);
@@ -755,7 +886,7 @@ app.post('/api/update-comment', async (req, res) => {
     } catch (error) { res.status(500).send(error.message); }
 });
 
-// 8. API: Delete Comment
+// 10. API: Delete Comment
 app.post('/api/delete-comment', async (req, res) => {
     const { filename } = req.body;
     const filepath = path.join(commentsDir, filename);
@@ -770,7 +901,7 @@ app.post('/api/delete-comment', async (req, res) => {
     } catch (error) { res.status(500).send(error.message); }
 });
 
-// 9. API: Git Pull
+// 11. API: Git Pull
 app.post('/api/pull', async (req, res) => {
     try { await git.pull(); res.sendStatus(200); } 
     catch (error) { res.status(500).send(error.message); }
