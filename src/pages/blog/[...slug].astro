@@ -112,17 +112,40 @@ function getValidUrl(url: string | undefined | null) {
     </div>
 
     <style>
+      /* --- DEDICATED COMMENT COLORS --- */
+      :root {
+          --local-comment-bg: #e2e8f0; /* Darker light-gray for light mode */
+          --local-admin-bg: #f8f9fa;   /* Very light gray for admin replies */
+      }
+      :global(html.dark-mode) {
+          --local-comment-bg: #2d3748; /* Noticeably lighter blue-gray for dark mode */
+          --local-admin-bg: #242c3a;   /* Slightly darker for admin replies */
+      }
+
       .comments-section { margin-top: 50px; padding-top: 20px; border-top: 2px solid var(--border-color); }
       .comment-thread { margin-bottom: 25px; }
       
-      .comment-item { background: var(--accent-bg); padding: 20px; border-radius: 8px; border-right: 4px solid var(--border-color); }
+      .comment-item { 
+          background: var(--local-comment-bg); /* Applies the custom variable! */
+          padding: 20px; 
+          border-radius: 8px; 
+          border-right: 4px solid var(--border-color); 
+          transition: background 0.3s ease;
+      }
       .comment-item p { font-size: 0.85em !important; line-height: 1.6 !important; }
-      .admin-reply { margin-right: 30px; margin-top: 10px; border-right: 4px solid #3498db; background: var(--bg-container); border: 1px solid var(--border-light); }
+      
+      .admin-reply { 
+          margin-right: 30px; 
+          margin-top: 10px; 
+          border-right: 4px solid #3498db; 
+          background: var(--local-admin-bg); 
+          border: 1px solid var(--border-light); 
+      }
       .admin-reply p { font-style: italic; }
       
       .meta { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed var(--border-light); padding-bottom: 10px;}
       
-      /* New CSS for the linked names! */
+      /* Linked names CSS */
       .meta strong { color: var(--text-heading); font-size: 1.1em; }
       .meta strong a { color: var(--text-heading); text-decoration: none; border-bottom: 1px dotted var(--text-muted); transition: color 0.2s, border-bottom-color 0.2s; }
       .meta strong a:hover { color: #3498db; border-bottom-color: #3498db; }

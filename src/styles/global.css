@@ -9,6 +9,10 @@ html, body { max-width: 100vw; overflow-x: hidden; }
     --border-light: #eaeaea; --accent-bg: #f9f9f9; --fade-start: rgba(255,255,255,0);
     --fade-end: rgba(255,255,255,1); --btn-bg: #f4f6f7; --btn-hover: #e2e8f0;
     --toggle-bg: #2c3e50; --toggle-color: #ffffff;
+    
+    /* NEW: Post Link & Comment Variables (Light Mode) */
+    --post-link-color: #3498db; 
+    --comment-bg: #eef0f4; /* Noticeably darker gray for contrast */
 }
 
 html.dark-mode {
@@ -17,6 +21,10 @@ html.dark-mode {
     --border-light: #333333; --accent-bg: #2a2a2a; --fade-start: rgba(30,30,30,0);
     --fade-end: rgba(30,30,30,1); --btn-bg: #333333; --btn-hover: #444444;
     --toggle-bg: #e0e0e0; --toggle-color: #121212;
+    
+    /* NEW: Post Link & Comment Variables (Dark Mode) */
+    --post-link-color: #5dade2; 
+    --comment-bg: #2a3240; /* Noticeably lighter blue-gray for dark mode contrast */
 }
 
 body { 
@@ -195,6 +203,43 @@ a:hover { color: #1abc9c; }
     font-family: 'Vazirmatn', sans-serif !important; 
     background-color: transparent !important; 
 }
+
+/* ======================================================= */
+/* NEW: POST LINKS AND COMMENTS FIX                        */
+/* ======================================================= */
+
+/* 1. Force links inside posts to be light blue, overriding the wildcards above */
+.post-content-body a, 
+.excerpt-container a {
+    color: var(--post-link-color) !important;
+    text-decoration: underline !important;
+    text-underline-offset: 4px;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.post-content-body a:hover, 
+.excerpt-container a:hover {
+    color: #1abc9c !important; /* Matches your general link hover color */
+}
+
+/* 2. Styling for comments on the blog. We cast a wide net for class names. */
+.comment,
+.comment-item,
+.comment-card,
+.comment-box,
+.comment-body,
+.single-comment {
+    background-color: var(--comment-bg) !important;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+}
+
+/* ======================================================= */
+
 .excerpt-container { font-size: 15px !important; }
 
 /* THEME TOGGLE */
