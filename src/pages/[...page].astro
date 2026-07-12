@@ -3,17 +3,17 @@ import { getCollection } from 'astro:content';
 import '../styles/global.css';
 
 export async function getStaticPaths({ paginate }) {
-    const rawPosts = await getCollection('blog');
+    const allPosts = await getCollection('blog');
     
-    // Ultra-safe sort
-    const sortedPosts = rawPosts.sort((a, b) => {
-        const dateA = (a.data && a.data.date) ? new Date(a.data.date).getTime() : 0;
-        const dateB = (b.data && b.data.date) ? new Date(b.data.date).getTime() : 0;
-        return dateB - dateA;
+    // 1. THE SORTING MUST HAPPEN HERE!
+    const sortedPosts = allPosts.sort((a, b) => {
+        if (a.data.pinned && !b.data.pinned) return -1;
+        if (!a.data.pinned && b.data.pinned) return 1;
+        return b.data.date.getTime() - a.data.date.getTime();
     });
-    
-    // 15 posts creates exactly five 3-column rows
-    return paginate(sortedPosts, { pageSize: 15 });
+
+    // 2. THEN PAGINATE THE SORTED POSTS
+    return paginate(sortedPosts, { pageSize: 10 }); 
 }
 
 const { page } = Astro.props;
@@ -179,6 +179,13 @@ for(let i = 1; i <= totalPages; i++) {
                     
                     {page.data[0] && (
                         <div class="post-card">
+                            {/* --- NEW: PINNED BADGE FOR FEATURED POST --- */}
+                            {page.data[0].data.pinned && (
+                                <div style="position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; z-index: 15; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px;">
+                                    📌 سنجاق‌شده
+                                </div>
+                            )}
+                            
                             {extractImage(page.data[0].body) && (
                                 <a href={`/delsharm/blog/${page.data[0].id}/`}>
                                     <img src={extractImage(page.data[0].body)} class="card-img" alt="تصویر پست" />
@@ -195,7 +202,7 @@ for(let i = 1; i <= totalPages; i++) {
                                 
                                 <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">                                   
                                  <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
-                                                                    
+                                                                                    
                                    <a href={`/delsharm/blog/${page.data[0].id}/#comments-section`} class="comment-badge" style="position: relative; z-index: 20; text-decoration: none; font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
                                 💬 {commentCounts[page.data[0].id] ? toFa(commentCounts[page.data[0].id]) : '۰'} دیدگاه
                                 </a>
