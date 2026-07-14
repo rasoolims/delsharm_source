@@ -391,3 +391,51 @@ a:hover { color: #1abc9c; }
         z-index: 9999;
     }
 }
+
+/* ======================================================= */
+/* GOODREADS BOOK GRID                                     */
+/* ======================================================= */
+
+.book-tile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns on computer */
+    gap: 25px;
+    margin: 40px 0;
+}
+
+.book-tile {
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--bg-container); /* Matches your site theme */
+}
+
+.book-tile:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* --- THE SIZING MAGIC --- */
+.book-tile img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 3; /* Forces a perfect uniform book rectangle */
+    object-fit: cover;   /* Fills the box without squishing the image */
+    display: block;
+    margin: 0 !important; /* Overrides default markdown image margins */
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    .book-tile-grid {
+        grid-template-columns: 1fr; /* Exactly 1 column on mobile */
+        gap: 30px;
+    }
+    
+    .book-tile {
+        max-width: 280px; /* Prevents the book cover from being ridiculously huge on phones */
+        margin: 0 auto;   /* Centers the tile on the screen */
+    }
+}
