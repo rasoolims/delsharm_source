@@ -34,8 +34,25 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// Increased payload limit to 50mb
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Native JS Function to Convert ISO Date to Jalali Date
+function getJalaliDate(isoDateString) {
+    try {
+        const dateObj = new Date(isoDateString);
+        if (isNaN(dateObj.getTime())) return "";
+        const formatter = new Intl.DateTimeFormat('fa-IR', {
+            year: 'numeric',
+            month: 'long',
+            day: '2-digit'
+        });
+        return formatter.format(dateObj);
+    } catch (e) {
+        return "";
+    }
+}
 
 // Helper: Count comments per post
 function getCommentCounts() {
@@ -72,11 +89,21 @@ app.get('/', (req, res) => {
         const parsed = matter(content);
         const slug = file.replace(/\.mdx?$/, '');
         
+        // Safely extract tags as an array
+        let tagsArr = [];
+        if (Array.isArray(parsed.data.tags)) {
+            tagsArr = parsed.data.tags;
+        } else if (parsed.data.tags) {
+            tagsArr = [String(parsed.data.tags)];
+        }
+        
         postsData.push({
             filename: file,
             slug: slug,
             title: parsed.data.title || file,
             date: new Date(parsed.data.date || 0).getTime(),
+            jalaliDate: parsed.data.jalaliDate || "", 
+            tags: tagsArr,
             comments: commentCounts[slug] || 0,
             pinned: parsed.data.pinned === true 
         });
@@ -146,6 +173,7 @@ app.get('/', (req, res) => {
             .btn-pull { background: #27ae60; }
             .btn-new { background: #9b59b6; }
             .btn-about { background: #8e44ad; }
+            .btn-fix { background: #16a085; }
             .btn-comments { background: #e67e22; margin-left: 5px; }
             .btn-pin { background: #f39c12; margin-right: 5px; color: #fff;}
             .btn-unpin { background: #7f8c8d; margin-right: 5px; color: #fff;}
@@ -207,18 +235,19 @@ app.get('/', (req, res) => {
                     <div class="header-actions">
                         <button class="btn-new" onclick="showPostForm()">➕ پست جدید</button>
                         <button class="btn-about" onclick="editAboutPage()">👤 ویرایش درباره من</button>
-                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت دیدگاه‌ها</button>
+                        <button class="btn-fix" onclick="fixMissingJalaliDates()">📅 ساخت تاریخ شمسی پست‌های قدیمی</button>
+                        <button class="btn-pull" onclick="pullChanges()">⬇️ دریافت اطلاعات</button>
                     </div>
                 </div>
                 <div id="post-list"></div>
                 <div id="pagination-controls" class="pagination"></div>
             </div>
             
-            <!-- ABOUT PAGE EDITOR VIEW -->
+            <!-- ABOUT PAGE EDITOR VIEW (Safe Raw Mode) -->
             <div id="about-form-section" style="display:none;">
                 <h2>ویرایش صفحه درباره من</h2>
                 <div style="background: rgba(241, 196, 15, 0.15); padding:10px; margin-bottom:15px; border-radius:5px; color:#d35400; border-right: 4px solid #f1c40f; font-size:0.9em;">
-                    <strong>توجه:</strong> این بخش مستقیماً کدهای فایل ساختاری (Astro) را ویرایش می‌کند.
+                    <strong>توجه:</strong> این بخش مستقیماً کدهای فایل ساختاری (Astro) را ویرایش می‌کند. ویرایشگر دیداری برای این صفحه غیرفعال است تا کدهای قالب‌بندی سایت شما از بین نروند.
                 </div>
                 <div class="form-group full-width">
                     <textarea id="about-raw-content" spellcheck="false"></textarea>
@@ -243,6 +272,11 @@ app.get('/', (req, res) => {
                         <input type="text" id="post-slug" placeholder="مثال: book-review-2024" dir="ltr">
                     </div>
                     
+                    <div class="form-group full-width">
+                        <label>تاریخ شمسی (اختیاری):</label>
+                        <input type="text" id="post-jalali-date" placeholder="اگر خالی بگذارید، به صورت خودکار محاسبه و نوشته می‌شود">
+                    </div>
+
                     <div class="form-group full-width" style="display: flex; align-items: center; gap: 10px; background: var(--meta-bg); padding: 10px; border-radius: 6px;">
                         <input type="checkbox" id="post-pinned">
                         <label for="post-pinned" style="margin: 0; cursor: pointer;">سنجاق کردن این پست (نمایش در بالای لیست)</label>
@@ -367,6 +401,32 @@ app.get('/', (req, res) => {
                 btn.disabled = false;
             }
 
+            // --- BATCH FIX JALALI DATES ---
+            async function fixMissingJalaliDates() {
+                if(!confirm('این کار تمام پست‌های قدیمی را بررسی کرده و برای آنهایی که تاریخ شمسی ندارند، بر اساس تاریخ اصلی پست، تاریخ شمسی می‌سازد. آیا مطمئن هستید؟')) return;
+                
+                const btn = document.querySelector('.btn-fix');
+                const originalText = btn.innerText;
+                btn.innerText = 'در حال محاسبه و تعمیر...';
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/fix-jalali-dates', { method: 'POST' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        alert(\`عملیات با موفقیت انجام شد! \${toFa(data.updatedCount)} پست تعمیر و در گیت‌هاب ذخیره شدند.\`);
+                        location.reload();
+                    } else {
+                        alert('خطا در انجام عملیات.');
+                    }
+                } catch(e) {
+                    alert('خطا در ارتباط با سرور.');
+                }
+
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+
             // --- IMAGE UPLOAD LOGIC ---
             async function uploadHeroImage(event) {
                 const file = event.target.files[0];
@@ -485,22 +545,40 @@ app.get('/', (req, res) => {
                 const end = start + postsPerPage;
                 const paginatedPosts = ALL_POSTS.slice(start, end);
 
-                const html = paginatedPosts.map(post => \`
+                const html = paginatedPosts.map(post => {
+                    const tagsListHtml = (post.tags && post.tags.length > 0) 
+                        ? post.tags.map(t => '<span class="meta-tag">🏷️ ' + t + '</span>').join('')
+                        : '<span class="meta-tag" style="opacity: 0.5;">بدون برچسب</span>';
+
+                    return \`
                     <div class="post-item">
                         <div class="post-info \${post.pinned ? 'is-pinned' : ''}">
                             <strong>\${post.pinned ? '📌 ' : ''}\${post.title}</strong>
-                            <span class="meta-tag">💬 \${toFa(post.comments)} دیدگاه</span>
+                            <div style="font-size: 0.8em; color: var(--text-muted); margin-top: 4px;">
+                                \${post.jalaliDate ? '📅 ' + post.jalaliDate : '<span style="color: #e74c3c;">⚠️ بدون تاریخ شمسی</span>'}
+                            </div>
+                            <div style="margin-top: 4px;">
+                                <span class="meta-tag">💬 \${toFa(post.comments)} دیدگاه</span>
+                            </div>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px;">
+                                \${tagsListHtml}
+                            </div>
                         </div>
-                        <div>
-                            <button class="\${post.pinned ? 'btn-unpin' : 'btn-pin'}" onclick="togglePinStatus('\${post.filename}', \${post.pinned}, event)">
-                                \${post.pinned ? '❌ برداشتن سنجاق' : '📌 سنجاق'}
-                            </button>
-                            <button class="btn-comments" onclick="openComments('\${post.slug}', '\${post.title}')">نظرات</button>
-                            <button onclick="showPostForm('\${post.filename}')">ویرایش</button>
-                            <button class="btn-delete" onclick="deletePost('\${post.filename}', event)">🗑️ حذف</button>
+                        <div style="display: flex; flex-direction: column; gap: 5px; align-items: flex-end;">
+                            <div style="display: flex; gap: 5px;">
+                                <button class="\${post.pinned ? 'btn-unpin' : 'btn-pin'}" onclick="togglePinStatus('\${post.filename}', \${post.pinned}, event)">
+                                    \${post.pinned ? '❌ برداشتن سنجاق' : '📌 سنجاق'}
+                                </button>
+                                <button class="btn-comments" onclick="openComments('\${post.slug}', '\${post.title}')">نظرات</button>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="showPostForm('\${post.filename}')">ویرایش</button>
+                                <button class="btn-delete" onclick="deletePost('\${post.filename}', event)">🗑️ حذف</button>
+                            </div>
                         </div>
                     </div>
-                \`).join('');
+                    \`;
+                }).join('');
                 
                 document.getElementById('post-list').innerHTML = html;
                 renderPaginationControls();
@@ -519,6 +597,9 @@ app.get('/', (req, res) => {
 
             // --- QUICK PIN TOGGLE FROM DASHBOARD ---
             async function togglePinStatus(filename, currentStatus, event) {
+                const actionText = currentStatus ? 'برداشتن سنجاق از این پست' : 'سنجاق کردن این پست';
+                if (!confirm(\`آیا از \${actionText} مطمئن هستید؟\`)) return;
+
                 const btn = event.target;
                 const originalText = btn.innerText;
                 btn.innerText = 'در حال انجام...';
@@ -555,7 +636,9 @@ app.get('/', (req, res) => {
                         document.getElementById('post-title').value = data.title;
                         document.getElementById('post-slug').value = filename.replace('.md', '');
                         document.getElementById('post-hero-image').value = data.heroImage || '';
-                        document.getElementById('post-tags').value = data.tags.join('، ');
+                        document.getElementById('post-jalali-date').value = data.jalaliDate || '';
+                        
+                        document.getElementById('post-tags').value = Array.isArray(data.tags) ? data.tags.join('، ') : '';
                         document.getElementById('post-pinned').checked = data.pinned === true;
                         
                         quill.clipboard.dangerouslyPasteHTML(data.body);
@@ -567,6 +650,7 @@ app.get('/', (req, res) => {
                     
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-slug').value = '';
+                    document.getElementById('post-jalali-date').value = '';
                     document.getElementById('post-hero-image').value = '';
                     document.getElementById('post-tags').value = '';
                     document.getElementById('post-pinned').checked = false; 
@@ -599,6 +683,7 @@ app.get('/', (req, res) => {
             async function savePostForm() {
                 const title = document.getElementById('post-title').value;
                 let slug = document.getElementById('post-slug').value;
+                const jalaliDateInput = document.getElementById('post-jalali-date').value;
                 const tagsInput = document.getElementById('post-tags').value;
                 const heroImage = document.getElementById('post-hero-image').value;
                 const isPinned = document.getElementById('post-pinned').checked; 
@@ -625,6 +710,7 @@ app.get('/', (req, res) => {
                         originalFilename: currentOriginalFilename,
                         newFilename: newFilename,
                         title: title,
+                        jalaliDate: jalaliDateInput,
                         tags: tagsArray,
                         heroImage: heroImage,
                         pinned: isPinned, 
@@ -771,11 +857,22 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
 // 3. API: Get JSON Post Data for Single Stage Form
 app.get('/api/post/:filename', (req, res) => {
     const filePath = path.join(postsDir, req.params.filename);
+    if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
+
     const content = fs.readFileSync(filePath, 'utf-8');
     const parsed = matter(content);
+
+    let tagsArr = [];
+    if (Array.isArray(parsed.data.tags)) {
+        tagsArr = parsed.data.tags;
+    } else if (parsed.data.tags) {
+        tagsArr = [String(parsed.data.tags)];
+    }
+    
     res.json({
         title: parsed.data.title || '',
-        tags: parsed.data.tags || [],
+        tags: tagsArr,
+        jalaliDate: parsed.data.jalaliDate || '',
         heroImage: parsed.data.heroImage || '',
         pinned: parsed.data.pinned === true, 
         body: parsed.content || '' 
@@ -812,31 +909,54 @@ app.post('/api/save-about', async (req, res) => {
     } catch (error) { res.status(500).send(error.message); }
 });
 
-// 6. API: Save Post (Handles New, Updates, and Renames)
+// 6. API: Save Post (Handles New, Updates, and Renames Safely)
 app.post('/api/save-post', async (req, res) => {
-    const { originalFilename, newFilename, title, tags, heroImage, content, pinned } = req.body;
+    const { originalFilename, newFilename, title, jalaliDate, tags, heroImage, content, pinned } = req.body;
+    
     try {
         let dateISO = new Date().toISOString();
+        let oldData = {};
+        
         if (originalFilename) {
             const oldPath = path.join(postsDir, originalFilename);
             if (fs.existsSync(oldPath)) {
                 const oldContent = fs.readFileSync(oldPath, 'utf-8');
                 const parsed = matter(oldContent);
-                if (parsed.data.date) dateISO = parsed.data.date;
+                oldData = parsed.data || {};
+                
+                if (oldData.date) dateISO = oldData.date;
+                
                 if (originalFilename !== newFilename) {
                     fs.unlinkSync(oldPath);
                     await git.rm(oldPath);
                 }
             }
         }
+        
+        // Auto-generate Jalali Date if empty!
+        let finalJalaliDate = jalaliDate;
+        if (!finalJalaliDate || finalJalaliDate.trim() === "") {
+            finalJalaliDate = getJalaliDate(dateISO);
+        }
+
+        let frontmatter = {
+            ...oldData, 
+            title: title,
+            date: dateISO,
+            jalaliDate: finalJalaliDate,
+            tags: tags,
+            pinned: pinned === true
+        };
+
+        if (heroImage && heroImage.trim() !== '') {
+            frontmatter.heroImage = heroImage.trim();
+        } else {
+            delete frontmatter.heroImage;
+        }
+
         const newPath = path.join(postsDir, newFilename);
-        let mdContent = `---
-title: "${title}"
-date: "${dateISO}"
-jalaliDate: ""
-`;
-        if (heroImage && heroImage.trim() !== '') { mdContent += `heroImage: "${heroImage.trim()}"\n`; }
-        mdContent += `tags: ${JSON.stringify(tags)}\npinned: ${pinned === true}\n---\n\n${content}\n`;
+        const yamlString = yaml.dump(frontmatter, { lineWidth: -1 });
+        const mdContent = `---\n${yamlString}---\n\n${content}\n`;
         
         fs.writeFileSync(newPath, mdContent, 'utf-8');
         await git.add(newPath);
@@ -921,21 +1041,18 @@ app.post('/api/pull', async (req, res) => {
     catch (error) { res.status(500).send(error.message); }
 });
 
-// 12. API: Toggle Pin Status from Dashboard
+// 12. API: Toggle Pin Status
 app.post('/api/toggle-pin', async (req, res) => {
     const { filename, newStatus } = req.body;
     const filePath = path.join(postsDir, filename);
     try {
         if (fs.existsSync(filePath)) {
             let rawContent = fs.readFileSync(filePath, 'utf-8');
-            
-            // Find and replace the pinned status if it exists, otherwise add it
             if (/pinned:\s*(true|false)/i.test(rawContent)) {
                 rawContent = rawContent.replace(/pinned:\s*(true|false)/i, `pinned: ${newStatus}`);
             } else {
                 rawContent = rawContent.replace(/^---\r?\n/, `---\npinned: ${newStatus}\n`);
             }
-
             fs.writeFileSync(filePath, rawContent, 'utf-8');
             await git.add(filePath);
             await git.commit(`${newStatus ? 'Pinned' : 'Unpinned'} post ${filename} via local portal`);
@@ -944,6 +1061,46 @@ app.post('/api/toggle-pin', async (req, res) => {
         } else {
             res.status(404).send('Not found');
         }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 13. API: Batch Fix Missing Jalali Dates
+app.post('/api/fix-jalali-dates', async (req, res) => {
+    try {
+        if (!fs.existsSync(postsDir)) return res.json({ updatedCount: 0 });
+        
+        const files = fs.readdirSync(postsDir).filter(f => f.endsWith('.md') || f.endsWith('.mdx'));
+        let updatedCount = 0;
+        
+        for (const file of files) {
+            const filePath = path.join(postsDir, file);
+            const content = fs.readFileSync(filePath, 'utf-8');
+            const parsed = matter(content);
+            const oldData = parsed.data || {};
+            
+            if (!oldData.jalaliDate || oldData.jalaliDate.trim() === '') {
+                if (oldData.date) {
+                    oldData.jalaliDate = getJalaliDate(oldData.date);
+                    
+                    const yamlString = yaml.dump(oldData, { lineWidth: -1 });
+                    const mdContent = `---\n${yamlString}---\n\n${parsed.content || ''}\n`;
+                    
+                    fs.writeFileSync(filePath, mdContent, 'utf-8');
+                    await git.add(filePath);
+                    updatedCount++;
+                }
+            }
+        }
+        
+        if (updatedCount > 0) {
+            await git.commit(`Auto-populated jalaliDate for ${updatedCount} posts`);
+            await git.push();
+        }
+        
+        res.json({ updatedCount });
     } catch (error) {
         console.error(error);
         res.status(500).send(error.message);
