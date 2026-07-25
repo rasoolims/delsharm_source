@@ -34,8 +34,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Helper: Count comments per post
 function getCommentCounts() {
@@ -77,11 +77,17 @@ app.get('/', (req, res) => {
             slug: slug,
             title: parsed.data.title || file,
             date: new Date(parsed.data.date || 0).getTime(),
-            comments: commentCounts[slug] || 0
+            comments: commentCounts[slug] || 0,
+            pinned: parsed.data.pinned === true 
         });
     }
 
-    postsData.sort((a, b) => b.date - a.date);
+    // Sort: Pinned posts first, then by date newest to oldest
+    postsData.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return b.date - a.date;
+    });
 
     const html = `
     <html lang="fa" dir="rtl">
@@ -129,6 +135,7 @@ app.get('/', (req, res) => {
             .post-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
             .post-item:hover { background: var(--hover-bg); }
             .post-info { display: flex; flex-direction: column; gap: 5px; }
+            .post-info.is-pinned { border-right: 4px solid #e74c3c; padding-right: 10px; }
             
             .meta-tag { font-size: 0.85em; color: var(--text-muted); background: var(--meta-bg); padding: 3px 8px; border-radius: 10px; display: inline-block; width: fit-content; }
             
@@ -140,8 +147,10 @@ app.get('/', (req, res) => {
             .btn-new { background: #9b59b6; }
             .btn-about { background: #8e44ad; }
             .btn-comments { background: #e67e22; margin-left: 5px; }
+            .btn-pin { background: #f39c12; margin-right: 5px; color: #fff;}
+            .btn-unpin { background: #7f8c8d; margin-right: 5px; color: #fff;}
             .btn-cancel { background: #e74c3c; margin-right: 10px; }
-            .btn-delete { background: #c0392b; font-size: 0.8em; padding: 5px 10px; }
+            .btn-delete { background: #c0392b; font-size: 0.8em; padding: 5px 10px; margin-right: 5px; }
             .btn-toggle { background: #34495e; margin-bottom: 15px; }
             
             /* Form Grid */
@@ -149,7 +158,8 @@ app.get('/', (req, res) => {
             .form-group { margin-bottom: 15px; }
             .form-group.full-width { grid-column: span 2; }
             .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-main); }
-            .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 1em; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); }
+            .form-group input[type="text"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 1em; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); }
+            .form-group input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
             .form-group small { color: var(--text-muted) !important; }
 
             /* Quill & Code Editor Overrides */
@@ -204,11 +214,11 @@ app.get('/', (req, res) => {
                 <div id="pagination-controls" class="pagination"></div>
             </div>
             
-            <!-- ABOUT PAGE EDITOR VIEW (Safe Raw Mode) -->
+            <!-- ABOUT PAGE EDITOR VIEW -->
             <div id="about-form-section" style="display:none;">
                 <h2>ویرایش صفحه درباره من</h2>
                 <div style="background: rgba(241, 196, 15, 0.15); padding:10px; margin-bottom:15px; border-radius:5px; color:#d35400; border-right: 4px solid #f1c40f; font-size:0.9em;">
-                    <strong>توجه:</strong> این بخش مستقیماً کدهای فایل ساختاری (Astro) را ویرایش می‌کند. ویرایشگر دیداری برای این صفحه غیرفعال است تا کدهای قالب‌بندی سایت شما از بین نروند.
+                    <strong>توجه:</strong> این بخش مستقیماً کدهای فایل ساختاری (Astro) را ویرایش می‌کند.
                 </div>
                 <div class="form-group full-width">
                     <textarea id="about-raw-content" spellcheck="false"></textarea>
@@ -232,6 +242,12 @@ app.get('/', (req, res) => {
                         <label>نام فایل انگلیسی (Slug):</label>
                         <input type="text" id="post-slug" placeholder="مثال: book-review-2024" dir="ltr">
                     </div>
+                    
+                    <div class="form-group full-width" style="display: flex; align-items: center; gap: 10px; background: var(--meta-bg); padding: 10px; border-radius: 6px;">
+                        <input type="checkbox" id="post-pinned">
+                        <label for="post-pinned" style="margin: 0; cursor: pointer;">سنجاق کردن این پست (نمایش در بالای لیست)</label>
+                    </div>
+
                     <div class="form-group full-width">
                         <label>تصویر اصلی (Hero Image):</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
@@ -304,7 +320,7 @@ app.get('/', (req, res) => {
                 return num.toString().replace(/[0-9]/g, x => farsiDigits[x]);
             }
 
-            // --- ABOUT PAGE LOGIC (Safe Mode) ---
+            // --- ABOUT PAGE LOGIC ---
             async function editAboutPage() {
                 const res = await fetch('/api/about');
                 if (!res.ok) {
@@ -437,6 +453,8 @@ app.get('/', (req, res) => {
 
             function updateDirectionButtons() {
                 if (!quill) return;
+                if (!quill.hasFocus()) return;
+
                 const format = quill.getFormat();
                 const rtlBtn = document.querySelector('.ql-rtl_btn');
                 const ltrBtn = document.querySelector('.ql-ltr_btn');
@@ -469,14 +487,17 @@ app.get('/', (req, res) => {
 
                 const html = paginatedPosts.map(post => \`
                     <div class="post-item">
-                        <div class="post-info">
-                            <strong>\${post.title}</strong>
+                        <div class="post-info \${post.pinned ? 'is-pinned' : ''}">
+                            <strong>\${post.pinned ? '📌 ' : ''}\${post.title}</strong>
                             <span class="meta-tag">💬 \${toFa(post.comments)} دیدگاه</span>
                         </div>
                         <div>
+                            <button class="\${post.pinned ? 'btn-unpin' : 'btn-pin'}" onclick="togglePinStatus('\${post.filename}', \${post.pinned}, event)">
+                                \${post.pinned ? '❌ برداشتن سنجاق' : '📌 سنجاق'}
+                            </button>
                             <button class="btn-comments" onclick="openComments('\${post.slug}', '\${post.title}')">نظرات</button>
                             <button onclick="showPostForm('\${post.filename}')">ویرایش</button>
-                            <button class="btn-delete" style="margin-right: 5px;" onclick="deletePost('\${post.filename}', event)">🗑️ حذف</button>
+                            <button class="btn-delete" onclick="deletePost('\${post.filename}', event)">🗑️ حذف</button>
                         </div>
                     </div>
                 \`).join('');
@@ -496,7 +517,29 @@ app.get('/', (req, res) => {
 
             function goToPage(page) { currentPage = page; renderPostList(); }
 
-            // --- POST FORM LOGIC (SINGLE STAGE) ---
+            // --- QUICK PIN TOGGLE FROM DASHBOARD ---
+            async function togglePinStatus(filename, currentStatus, event) {
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = 'در حال انجام...';
+                btn.disabled = true;
+
+                const res = await fetch('/api/toggle-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: filename, newStatus: !currentStatus })
+                });
+
+                if (res.ok) {
+                    location.reload(); 
+                } else {
+                    alert('خطا در تغییر وضعیت سنجاق');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }
+
+            // --- POST FORM LOGIC ---
             function showPostForm(filename = null) {
                 document.getElementById('dashboard-view').style.display = 'none';
                 document.getElementById('post-form-section').style.display = 'block';
@@ -513,10 +556,10 @@ app.get('/', (req, res) => {
                         document.getElementById('post-slug').value = filename.replace('.md', '');
                         document.getElementById('post-hero-image').value = data.heroImage || '';
                         document.getElementById('post-tags').value = data.tags.join('، ');
+                        document.getElementById('post-pinned').checked = data.pinned === true;
                         
-                        quill.root.innerHTML = data.body;
+                        quill.clipboard.dangerouslyPasteHTML(data.body);
                         document.getElementById('raw-markdown').value = data.body;
-                        setTimeout(updateDirectionButtons, 100); 
                     });
                 } else {
                     document.getElementById('form-section-title').innerText = 'ایجاد پست جدید';
@@ -526,10 +569,10 @@ app.get('/', (req, res) => {
                     document.getElementById('post-slug').value = '';
                     document.getElementById('post-hero-image').value = '';
                     document.getElementById('post-tags').value = '';
+                    document.getElementById('post-pinned').checked = false; 
                     
-                    quill.root.innerHTML = '';
+                    quill.setText('');
                     document.getElementById('raw-markdown').value = '';
-                    setTimeout(updateDirectionButtons, 100);
                 }
             }
 
@@ -546,7 +589,7 @@ app.get('/', (req, res) => {
                     rawTextarea.style.display = 'block';
                     btn.innerText = '👁️ نمایش ویرایشگر دیداری (WYSIWYG)';
                 } else {
-                    quill.root.innerHTML = rawTextarea.value;
+                    quill.clipboard.dangerouslyPasteHTML(rawTextarea.value);
                     rawTextarea.style.display = 'none';
                     quillContainer.style.display = 'block';
                     btn.innerText = '💻 نمایش سورس (Markdown/HTML)';
@@ -558,6 +601,7 @@ app.get('/', (req, res) => {
                 let slug = document.getElementById('post-slug').value;
                 const tagsInput = document.getElementById('post-tags').value;
                 const heroImage = document.getElementById('post-hero-image').value;
+                const isPinned = document.getElementById('post-pinned').checked; 
                 
                 if (!title || !slug) {
                     alert('لطفا عنوان پست و نام فایل (Slug) را وارد کنید.');
@@ -583,6 +627,7 @@ app.get('/', (req, res) => {
                         title: title,
                         tags: tagsArray,
                         heroImage: heroImage,
+                        pinned: isPinned, 
                         content: content
                     })
                 });
@@ -715,18 +760,12 @@ app.get('/', (req, res) => {
 app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).send('هیچ عکسی ارسال نشده است.');
-        
         const imagePath = `/images/${req.file.filename}`;
-        
         await git.add(req.file.path);
         await git.commit(`Uploaded image: ${req.file.filename}`);
         await git.push();
-        
         res.json({ url: imagePath });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+    } catch (error) { res.status(500).send(error.message); }
 });
 
 // 3. API: Get JSON Post Data for Single Stage Form
@@ -734,11 +773,11 @@ app.get('/api/post/:filename', (req, res) => {
     const filePath = path.join(postsDir, req.params.filename);
     const content = fs.readFileSync(filePath, 'utf-8');
     const parsed = matter(content);
-    
     res.json({
         title: parsed.data.title || '',
         tags: parsed.data.tags || [],
         heroImage: parsed.data.heroImage || '',
+        pinned: parsed.data.pinned === true, 
         body: parsed.content || '' 
     });
 });
@@ -750,7 +789,6 @@ app.get('/api/about', (req, res) => {
         path.join('src', 'pages', 'about.md'),
         path.join('src', 'pages', 'about', 'index.astro')
     ];
-
     for (let p of possiblePaths) {
         const fullPath = path.join(__dirname, p);
         if (fs.existsSync(fullPath)) {
@@ -758,7 +796,6 @@ app.get('/api/about', (req, res) => {
             return res.json({ content: content, filepath: p });
         }
     }
-    
     res.status(404).send('About page not found');
 });
 
@@ -772,63 +809,41 @@ app.post('/api/save-about', async (req, res) => {
         await git.commit(`Updated About page via local portal`);
         await git.push();
         res.sendStatus(200);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+    } catch (error) { res.status(500).send(error.message); }
 });
 
 // 6. API: Save Post (Handles New, Updates, and Renames)
 app.post('/api/save-post', async (req, res) => {
-    const { originalFilename, newFilename, title, tags, heroImage, content } = req.body;
-    
+    const { originalFilename, newFilename, title, tags, heroImage, content, pinned } = req.body;
     try {
         let dateISO = new Date().toISOString();
-        let pinned = false;
-        
         if (originalFilename) {
             const oldPath = path.join(postsDir, originalFilename);
             if (fs.existsSync(oldPath)) {
                 const oldContent = fs.readFileSync(oldPath, 'utf-8');
                 const parsed = matter(oldContent);
                 if (parsed.data.date) dateISO = parsed.data.date;
-                if (parsed.data.pinned !== undefined) pinned = parsed.data.pinned;
-                
                 if (originalFilename !== newFilename) {
                     fs.unlinkSync(oldPath);
                     await git.rm(oldPath);
                 }
             }
         }
-        
         const newPath = path.join(postsDir, newFilename);
-        
         let mdContent = `---
 title: "${title}"
 date: "${dateISO}"
 jalaliDate: ""
 `;
-        if (heroImage && heroImage.trim() !== '') {
-            mdContent += `heroImage: "${heroImage.trim()}"\n`;
-        }
-
-        mdContent += `tags: ${JSON.stringify(tags)}
-pinned: ${pinned}
----
-
-${content}
-`;
+        if (heroImage && heroImage.trim() !== '') { mdContent += `heroImage: "${heroImage.trim()}"\n`; }
+        mdContent += `tags: ${JSON.stringify(tags)}\npinned: ${pinned === true}\n---\n\n${content}\n`;
         
         fs.writeFileSync(newPath, mdContent, 'utf-8');
         await git.add(newPath);
         await git.commit(`Update post ${newFilename} via local portal`);
         await git.push(); 
-        
         res.sendStatus(200);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
+    } catch (error) { res.status(500).send(error.message); }
 });
 
 // 7. API: Delete Post
@@ -871,14 +886,12 @@ app.post('/api/update-comment', async (req, res) => {
     try {
         const parsed = yaml.load(fs.readFileSync(filepath, 'utf8'));
         parsed.message = userMessage;
-        
         if (reply && reply.trim() !== '') {
             parsed.adminResponse = {
                 date: parsed.adminResponse ? parsed.adminResponse.date : new Date().toISOString(),
                 message: reply
             };
         } else { delete parsed.adminResponse; }
-        
         fs.writeFileSync(filepath, yaml.dump(parsed), 'utf8');
         await git.add(filepath);
         await git.commit(`Moderated comment ${filename}`);
@@ -906,6 +919,35 @@ app.post('/api/delete-comment', async (req, res) => {
 app.post('/api/pull', async (req, res) => {
     try { await git.pull(); res.sendStatus(200); } 
     catch (error) { res.status(500).send(error.message); }
+});
+
+// 12. API: Toggle Pin Status from Dashboard
+app.post('/api/toggle-pin', async (req, res) => {
+    const { filename, newStatus } = req.body;
+    const filePath = path.join(postsDir, filename);
+    try {
+        if (fs.existsSync(filePath)) {
+            let rawContent = fs.readFileSync(filePath, 'utf-8');
+            
+            // Find and replace the pinned status if it exists, otherwise add it
+            if (/pinned:\s*(true|false)/i.test(rawContent)) {
+                rawContent = rawContent.replace(/pinned:\s*(true|false)/i, `pinned: ${newStatus}`);
+            } else {
+                rawContent = rawContent.replace(/^---\r?\n/, `---\npinned: ${newStatus}\n`);
+            }
+
+            fs.writeFileSync(filePath, rawContent, 'utf-8');
+            await git.add(filePath);
+            await git.commit(`${newStatus ? 'Pinned' : 'Unpinned'} post ${filename} via local portal`);
+            await git.push();
+            res.sendStatus(200);
+        } else {
+            res.status(404).send('Not found');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
 });
 
 app.listen(PORT, () => {

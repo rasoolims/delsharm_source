@@ -5,16 +5,29 @@ import '../styles/global.css';
 export async function getStaticPaths({ paginate }) {
     const allPosts = await getCollection('blog');
     
-    // 1. THE SORTING MUST HAPPEN HERE!
-    const sortedPosts = allPosts.sort((a, b) => {
-        if (a.data.pinned && !b.data.pinned) return -1;
-        if (!a.data.pinned && b.data.pinned) return 1;
-        
-        // Wrap the dates in new Date() to prevent the crash
+    // 1. Sort EVERYTHING purely by date first (newest to oldest)
+    const dateSortedPosts = [...allPosts].sort((a, b) => {
         return new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
     });
 
-    // 2. THEN PAGINATE THE SORTED POSTS (Changed to 15 for a perfect 3-column grid)
+    let sortedPosts = [];
+    
+    if (dateSortedPosts.length > 0) {
+        // 2. Extract the absolute newest post
+        const newestPost = dateSortedPosts[0];
+        
+        // 3. Take all the rest and sort them: Pinned first, then by date
+        const restOfPosts = dateSortedPosts.slice(1).sort((a, b) => {
+            if (a.data.pinned && !b.data.pinned) return -1;
+            if (!a.data.pinned && b.data.pinned) return 1;
+            return new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
+        });
+
+        // 4. Combine them back together
+        sortedPosts = [newestPost, ...restOfPosts];
+    }
+
+    // 5. Paginate the correctly sorted list
     return paginate(sortedPosts, { pageSize: 15 }); 
 }
 
@@ -124,7 +137,7 @@ function generateExcerpt(markdownBody: string) {
     text = text.replace(/[#*~_>]/g, '');
     text = text.replace(/[ \t]+/g, ' ').trim(); 
     text = text.replace(/ *[\r\n]+ */g, '\n');  
-    text = text.replace(/\n+/g, '\n');          
+    text = text.replace(/\n+/g, '\n');         
     if (text.length > 350) {
         text = text.substring(0, 350) + '...';
     }
@@ -242,7 +255,7 @@ for(let i = 1; i <= totalPages; i++) {
                                 
                                 <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;">                                   
                                  <a href={`/delsharm/blog/${page.data[0].id}/`} class="read-more" style="margin-top: 0;">ادامه مطلب ←</a>
-                                                                                                                                                    
+                                                                                                                                                                                                                                    
                                    <a href={`/delsharm/blog/${page.data[0].id}/#comments-section`} class="comment-badge" style="position: relative; z-index: 20; text-decoration: none; font-size: 0.85em; color: #3498db; background: rgba(52, 152, 219, 0.1); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
                                  💬 {commentCounts[page.data[0].id] ? toFa(commentCounts[page.data[0].id]) : '۰'} دیدگاه
                                 </a>
@@ -278,6 +291,13 @@ for(let i = 1; i <= totalPages; i++) {
 
                     {page.data.slice(1, 3).map((post) => (
                         <div class="post-card">
+                            {/* --- PINNED BADGE FOR POSTS 2 & 3 --- */}
+                            {post.data.pinned && (
+                                <div style="position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; z-index: 15; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px;">
+                                    📌 سنجاق‌شده
+                                </div>
+                            )}
+
                             {/* --- HERO IMAGE FOR POSTS 2 & 3 --- */}
                             {(post.data.heroImage || extractImage(post.body)) && (
                                 <a href={`/delsharm/blog/${post.id}/`}>
@@ -331,6 +351,13 @@ for(let i = 1; i <= totalPages; i++) {
 
                     {page.data.slice(3).map((post) => (
                         <div class="post-card">
+                            {/* --- PINNED BADGE FOR THE REST OF THE POSTS --- */}
+                            {post.data.pinned && (
+                                <div style="position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; z-index: 15; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px;">
+                                    📌 سنجاق‌شده
+                                </div>
+                            )}
+
                             {/* --- HERO IMAGE FOR THE REST OF THE POSTS --- */}
                             {(post.data.heroImage || extractImage(post.body)) && (
                                 <a href={`/delsharm/blog/${post.id}/`}>
