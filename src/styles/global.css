@@ -92,6 +92,22 @@ body {
 .rss-link:hover { opacity: 0.7; color: #e67e22; text-decoration: none; }
 .rss-text { font-family: Tahoma, sans-serif; letter-spacing: 1px; padding-top: 3px; }
 
+/* --- Brand Icon Styles --- */
+.brand-icon {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.brand-icon:hover { 
+    transform: scale(1.1); 
+    text-decoration: none; 
+}
+/* Ensure dark-mode Goodreads logo is visible! */
+.dark-mode .brand-icon[title="گودریدز"] {
+    color: #e2b998 !important; /* Lighter brown for dark mode */
+}
+
 /* ======================================================= */
 
 h1, h2 { color: var(--text-heading); }
